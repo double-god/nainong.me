@@ -1,0 +1,13 @@
+# 忽略 Git
+.git
+.gitignore
+
+# 【绝对禁止】复制本地的 node_modules
+# Docker 会自己在容器里安装纯净版
+**/node_modules
+**/dist
+**/npm-debug.log
+
+# 忽略本地数据库和环境配置
+backend/pb_data
+.env

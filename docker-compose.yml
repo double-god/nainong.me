@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # --- 后端服务 ---
+  backend:
+    # 指向 backend 目录下的 Dockerfile
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: blog-backend
+    restart: always
+    # 挂载数据卷：确保删除容器后，数据库不丢失
+    volumes:
+      - ./backend/pb_data:/app/pb_data
+    # 限制资源 (防止 OOM)
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 128M
+
+  # --- 前端服务 ---
+  frontend:
+    # 指向 frontend 目录下的 Dockerfile
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: blog-frontend
+    restart: always
+    environment:
+      # 这里填你服务器的域名，浏览器端需要访问
+      - PUBLIC_API_URL=https://api.你的域名.com
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 300M
+
+  # --- 网关服务 ---
+  nginx:
+    image: nginx:alpine
+    container_name: blog-gateway
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    # 挂载配置文件和证书
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # 如果你还没申请证书，先把下面这一行注释掉
+      # - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - backend
+      - frontend
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M

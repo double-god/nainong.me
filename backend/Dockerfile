@@ -1,31 +1,36 @@
-# 使用 PocketBase 官方镜像作为基础镜像
+# ==========================================
+# Stage 1: 下载器 (负责下载 Linux 版 PB)
+# ==========================================
+FROM alpine:latest AS downloader
+
+# 安装 curl 和 unzip
+RUN apk add --no-cache curl unzip
+
+# 定义版本 (以后要升级改这里就行)
+ARG PB_VERSION=0.22.9
+
+# 下载并解压 (自动适配 Linux AMD64)
+RUN curl -L -o pb.zip https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_amd64.zip \
+    && unzip pb.zip -d /pb/
+
+# ==========================================
+# Stage 2: 最终运行时
+# ==========================================
 FROM alpine:latest
 
-# 安装必要的依赖
+# 安装 CA 证书 (否则无法连接 Cloudflare R2 / HTTPS)
 RUN apk add --no-cache ca-certificates
 
-# 创建 pocketbase 用户
-RUN addgroup -S -g 1000 pocketbase &&\
-    adduser -S -u 1000 -G pocketbase pocketbase
-
-# 下载 PocketBase
 WORKDIR /app
-RUN wget https://github.com/pocketbase/pocketbase/releases/download/v0.22.0/pocketbase_0.22.0_linux_amd64.zip &&\
-    unzip pocketbase_0.22.0_linux_amd64.zip &&\
-    rm pocketbase_0.22.0_linux_amd64.zip
 
-# 创建数据目录
-RUN mkdir -p /pb_data &&\
-    chown -R pocketbase:pocketbase /pb_data /app
+# 从下载层复制二进制文件
+COPY --from=downloader /pb/pocketbase /app/pocketbase
 
-# 切换到 pocketbase 用户
-USER pocketbase
+# 给执行权限
+RUN chmod +x /app/pocketbase
 
 # 暴露端口
 EXPOSE 8090
 
-# 挂载数据卷
-VOLUME ["/pb_data"]
-
-# 启动 PocketBase
-CMD ["./pocketbase", "serve", "--http=0.0.0.0:8090"]
+# 启动命令 (绑定到 0.0.0.0)
+CMD ["/app/pocketbase", "serve", "--http=0.0.0.0:8090"]
