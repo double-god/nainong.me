@@ -48,6 +48,16 @@ Thumbs.db
 astro.config.*
 tsconfig.json
 
+# Docker
+docker-compose.override.yml
+Dockerfile
+
+# Lock files (should be committed but can be ignored in some cases)
+package-lock.json
+npm-shrinkwrap.json
+yarn.lock
+pnpm-lock.yaml
+
 # Temporary files
 tmp/
 temp/
