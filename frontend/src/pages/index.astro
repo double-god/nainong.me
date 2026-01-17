@@ -4,7 +4,7 @@ import PocketBase from 'pocketbase';
 
 // 2. 连接到后端（服务端渲染与开发环境区分）
 // 如果是在生产（Docker 内）则使用内部服务名 `backend`，否则使用本地回环地址
-const dbUrl = import.meta.env.MODE === 'production'
+const dbUrl = import.meta.env.PROD
   ? 'http://backend:8090'
   : 'http://127.0.0.1:8090';
 

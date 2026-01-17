@@ -28,8 +28,11 @@ services:
     container_name: blog-frontend
     restart: always
     environment:
-      # 这里填你服务器的域名，浏览器端需要访问
-      - PUBLIC_API_URL=https://api.你的域名.com
+      # 这里用于浏览器端 JS 访问 (比如点赞功能)，需要填你的公网域名
+      - PUBLIC_API_URL=https://api.nainong.me
+    # 不需要映射端口出来，由 Nginx 反代即可，或者映射用于测试
+    expose:
+      - "4321"
     deploy:
       resources:
         limits:
