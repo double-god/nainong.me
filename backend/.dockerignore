@@ -1,0 +1,7 @@
+# Keep backend image small by excluding runtime data and local artifacts
+pb_data
+pb_migrations
+.env
+.env.local
+.vscode
+*.log

@@ -1,0 +1,13 @@
+# Backend local ignores
+# Ignore PocketBase runtime data and local migrations that may contain personal documents
+pb_data/
+pb_migrations/
+
+# Environment and secrets
+.env
+.env.local
+
+# Editor / OS
+.vscode/
+*.log
+*.tmp
