@@ -17,7 +17,7 @@ services:
       resources:
         limits:
           cpus: '0.50'
-          memory: 128M
+          memory: 256M  # 【建议】从 128M 提升到 256M，防止 OOM 重启
 
   # --- 前端服务 ---
   frontend:

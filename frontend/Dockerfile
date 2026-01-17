@@ -21,25 +21,26 @@ COPY . .
 RUN npm run build
 
 # ==========================================
-# Stage 3: 最终运行时 (极简镜像)
+# Stage 3: 最终运行时 (极致优化版)
 # ==========================================
 FROM node:20-alpine AS runtime
 WORKDIR /app
 
-# 1. 也是先复制依赖文件
+# 【优化1】设置生产环境变量 (极重要！提升性能，减少日志)
+ENV NODE_ENV=production
+
+# 1. 复制依赖
 COPY package.json package-lock.json ./
 
-# 2. 【关键】只安装生产环境依赖 (去除 devDependencies)
-# 这会把体积减少 50% 以上
+# 2. 安装生产依赖 (配合 ENV 使用，忽略 dev 依赖)
 RUN npm ci --only=production && npm cache clean --force
 
-# 3. 从 Build 层只复制构建产物
+# 3. 复制构建产物
 COPY --from=build /app/dist ./dist
 
-# 环境变量：监听所有 IP，否则 Docker 外部访问不到
+# 环境变量
 ENV HOST=0.0.0.0
 ENV PORT=4321
 
-# 启动命令
 EXPOSE 4321
 CMD ["node", "./dist/server/entry.mjs"]

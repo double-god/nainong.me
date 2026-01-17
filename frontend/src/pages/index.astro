@@ -1,11 +1,46 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+// 1. 引入 SDK
+import PocketBase from 'pocketbase';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+// 2. 连接到后端（服务端渲染与开发环境区分）
+// 如果是在生产（Docker 内）则使用内部服务名 `backend`，否则使用本地回环地址
+const dbUrl = import.meta.env.MODE === 'production'
+  ? 'http://backend:8090'
+  : 'http://127.0.0.1:8090';
+
+const pb = new PocketBase(dbUrl);
+
+// 3. 抓取数据
+// 'posts' 是你刚才创建的集合名字，必须一模一样
+const posts = await pb.collection('posts').getFullList({
+    sort: '-created', // 按创建时间倒序排
+});
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8" />
+    <title>我的 PocketBase 博客</title>
+    <meta name="viewport" content="width=device-width" />
+  </head>
+  <body>
+    <div style="max-width: 800px; margin: 0 auto; padding: 20px;">
+      <h1>欢迎来到我的博客</h1>
+      <p>下面这些内容是从 PocketBase 数据库里实时读取的：</p>
+      
+      <div class="blog-list">
+        {posts.map((post) => (
+          <article style="border: 1px solid #ccc; margin: 20px 0; padding: 20px; border-radius: 8px;">
+            <h2 style="margin-top: 0;">{post.title}</h2>
+            <div set:html={post.content}></div>
+            <p style="color: #666; font-size: 0.9em;">
+              发布时间: {new Date(post.created).toLocaleString()}
+            </p>
+          </article>
+        ))}
+      </div>
+
+      {posts.length === 0 && <p>暂时没有文章，博主在偷懒。</p>}
+    </div>
+  </body>
+</html>
