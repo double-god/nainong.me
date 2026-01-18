@@ -10,11 +10,17 @@ const dbUrl = import.meta.env.PROD
 
 const pb = new PocketBase(dbUrl);
 
-// 3. 抓取数据
-// 'posts' 是你刚才创建的集合名字，必须一模一样
-const posts = await pb.collection('posts').getFullList({
+// 3. 抓取数据（带调试输出，帮助排查在容器内使用的地址）
+console.log("正在连接数据库地址:", dbUrl);
+let posts = [];
+try {
+  posts = await pb.collection('posts').getFullList({
     sort: '-created', // 按创建时间倒序排
-});
+  });
+  console.log("成功获取到数据:", posts.length, "条");
+} catch (e) {
+  console.error("获取数据失败，详细错误:", e.originalError || e);
+}
 ---
 
 <html lang="zh-cn">
