@@ -1,0 +1,72 @@
+---
+import type { Post } from '@/types'
+import { PostCardHoverOverlay } from './PostCardHoverOverlay'
+import PostMetaInfo from './PostMetaInfo.astro'
+import readingTime from 'reading-time'
+
+interface Props {
+  entry: Post
+}
+
+const { entry } = Astro.props
+
+const stats = readingTime(entry.content)
+const coverUrl = entry.cover
+  ? `https://nainong.me/api/files/${entry.collectionId}/${entry.id}/${entry.cover}`
+  : undefined
+---
+
+<a class="block relative py-8 focus-visible:outline-0" href={`/posts/${entry.slug || entry.id}`}>
+  <PostCardHoverOverlay client:only="react" />
+  <h2 class="relative text-2xl font-bold">
+    {entry.title}
+  </h2>
+  <div class="mt-4 overflow-hidden">
+    {
+      coverUrl && (
+        <img
+          class="float-right ml-3 mb-2 size-[80px] rounded-md object-cover select-none"
+          src={coverUrl}
+          alt={entry.title}
+          loading="lazy"
+        />
+      )
+    }
+    {entry.summary && <p>{entry.summary}</p>}
+  </div>
+  <div class="mt-2 flex flex-wrap items-center justify-end gap-4 select-none">
+    <PostMetaInfo
+      class="grow"
+      date={new Date(entry.created)}
+      lastMod={new Date(entry.updated)}
+      words={stats.words}
+      readingMinutes={stats.minutes}
+    />
+    <div class="group shrink-0 text-accent flex items-center gap-2">
+      <span>继续阅读</span>
+      <svg width="36" height="12" viewBox="0 0 36 12" fill="none" class="stroke-current">
+        <path
+          d="M0.75 6H11.25 M6 0.75L11.25 6L6 11.25"
+          stroke-linecap="round"
+          stroke-linejoin="round"></path>
+        <path
+          d="M15 10L19.5 5.5L15 1"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="delay-100 opacity-0 group-hover:opacity-100"></path>
+        <path
+          d="M23 10L27.5 5.5L23 1"
+          stroke-opacity="0.66"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="delay-200 opacity-0 group-hover:opacity-100"></path>
+        <path
+          d="M31 10L35.5 5.5L31 1"
+          stroke-opacity="0.35"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="delay-300 opacity-0 group-hover:opacity-100"></path>
+      </svg>
+    </div>
+  </div>
+</a>

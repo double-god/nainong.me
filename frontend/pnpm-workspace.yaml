@@ -1,0 +1,5 @@
+ignoredBuiltDependencies:
+  - esbuild
+  - sharp
+  - simple-git-hooks
+  - swup

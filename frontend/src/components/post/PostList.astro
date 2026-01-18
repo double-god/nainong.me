@@ -1,0 +1,22 @@
+---
+import type { Post } from '@/types'
+import PostCard from './PostCard.astro'
+
+interface Props {
+  posts: Post[]
+}
+
+const { posts } = Astro.props
+---
+
+<div>
+  <ul class="-my-4">
+    {
+      posts.map((post) => (
+        <li>
+          <PostCard entry={post} />
+        </li>
+      ))
+    }
+  </ul>
+</div>

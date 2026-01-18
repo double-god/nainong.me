@@ -1,0 +1,46 @@
+---
+import { getSortedPosts } from '@/utils/content';
+import { marked } from 'marked';
+import MarkdownLayout from '@/layouts/MarkdownLayout.astro';
+import PostMetaInfo from '@/components/post/PostMetaInfo.astro';
+import PostArchiveInfo from '@/components/post/PostArchiveInfo.astro';
+
+// 1. 生成静态路径 (告诉 Astro 有哪些文章页面要生成)
+export async function getStaticPaths() {
+  const posts = await getSortedPosts();
+  return posts.map((post) => ({
+    params: { slug: post.slug || post.id }, // 如果没有 slug 就用 id
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+
+// 2. 把 Markdown 转换成 HTML
+const htmlContent = await marked.parse(post.content || '');
+
+// 处理日期格式
+const date = new Date(post.created);
+---
+
+<MarkdownLayout
+  title={post.title}
+  description={post.summary}
+  image={post.cover ? `https://nainong.me/api/files/${post.collectionId}/${post.id}/${post.cover}` : undefined}
+  mdTitle={post.title}
+  mdSlug={`/posts/${post.slug || post.id}`}
+>
+  <div class="max-w-[1100px] mx-auto px-4 md:px-8 py-16">
+    <header class="space-y-4 text-center mb-10">
+      <h1 class="text-4xl font-bold">{post.title}</h1>
+      <div class="flex justify-center gap-4 text-gray-500">
+        <time>{date.toLocaleDateString()}</time>
+        {post.category && <span>{post.category}</span>}
+      </div>
+    </header>
+
+    <article class="prose lg:prose-xl mx-auto dark:prose-invert">
+      <div set:html={htmlContent} />
+    </article>
+  </div>
+</MarkdownLayout>
