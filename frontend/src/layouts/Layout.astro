@@ -7,6 +7,7 @@ import {
   PrintVersion,
 } from '@/components/head'
 import { BackToTopFAB } from '@/components/BackToTopFAB'
+import { MusicPlayer } from '@/components/MusicPlayer'
 import { ToastContainer } from '@/components/ToastContainer'
 import { ModalStack } from '@/components/ui/modal'
 import { site } from '@/config.json'
@@ -33,6 +34,7 @@ const { title, description, image } = Astro.props
   <body>
     <slot />
 
+    <MusicPlayer client:only="react" />
     <BackToTopFAB client:only="react" />
     <ToastContainer client:only="react" />
     <ModalStack client:only="react" />

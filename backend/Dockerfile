@@ -3,15 +3,19 @@
 # ==========================================
 FROM alpine:latest AS downloader
 
-# 安装 curl 和 unzip
-RUN apk add --no-cache curl unzip
+# 安装 curl 和 unzip (使用 --no-cache 减少镜像大小)
+# --virtual=build 便于后续清理
+RUN apk add --no-cache --virtual=build curl unzip
 
 # 定义版本 (以后要升级改这里就行)
 ARG PB_VERSION=0.22.9
 
 # 下载并解压 (自动适配 Linux AMD64)
-RUN curl -L -o pb.zip https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_amd64.zip \
-    && unzip pb.zip -d /pb/
+# 使用 -L 跟随重定向, -sS 静默模式但显示错误
+RUN curl -LsS -o pb.zip https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_amd64.zip \
+    && unzip pb.zip -d /pb/ \
+    && rm pb.zip \
+    && apk del build
 
 # ==========================================
 # Stage 2: 最终运行时

@@ -1,0 +1,171 @@
+# ==========================================
+# 自动化部署工作流
+# 部署到 2核2GB 服务器
+# ==========================================
+
+name: Deploy to Production
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:  # 允许手动触发
+
+env:
+  # 镜像命名规范
+  FRONTEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/blog-frontend
+  BACKEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/blog-backend
+
+jobs:
+  # ==========================================
+  # Job 1: 构建并推送前端镜像
+  # ==========================================
+  build-frontend:
+    name: Build & Push Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract Metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.FRONTEND_IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=
+            type=ref,event=branch
+
+      - name: Build and Push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # 针对低内存服务器优化构建
+          build-args: |
+            NODE_OPTIONS=--max-old-space-size=1536
+
+  # ==========================================
+  # Job 2: 构建并推送后端镜像
+  # ==========================================
+  build-backend:
+    name: Build & Push Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract Metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.BACKEND_IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=
+            type=ref,event=branch
+
+      - name: Build and Push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ==========================================
+  # Job 3: 部署到服务器
+  # ==========================================
+  deploy:
+    name: Deploy to Server
+    needs: [build-frontend, build-backend]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 复制 docker-compose.yml 到服务器
+      - name: Copy Compose Config
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          source: "docker-compose.yml"
+          target: ${{ secrets.DEPLOY_PATH }}
+          strip_components: 0
+
+      # 执行部署命令
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script_stop: true
+          script: |
+            set -e
+
+            echo "=== 部署开始 ==="
+            cd ${{ secrets.DEPLOY_PATH }}
+
+            echo "=== 拉取最新镜像 ==="
+            docker compose pull
+
+            echo "=== 停止旧容器 ==="
+            docker compose down
+
+            echo "=== 启动新容器 ==="
+            docker compose up -d
+
+            echo "=== 等待健康检查 ==="
+            sleep 10
+
+            echo "=== 清理未使用的镜像 ==="
+            docker image prune -af --filter "until=72h"
+
+            echo "=== 查看容器状态 ==="
+            docker compose ps
+
+            echo "=== 部署完成 ==="
+
+      # 可选: 发送部署通知
+      - name: Deployment Summary
+        run: |
+          echo "## 部署成功 :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **前端镜像**: ${{ env.FRONTEND_IMAGE }}:latest" >> $GITHUB_STEP_SUMMARY
+          echo "- **后端镜像**: ${{ env.BACKEND_IMAGE }}:latest" >> $GITHUB_STEP_SUMMARY
+          echo "- **服务器**: ${{ secrets.SSH_HOST }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **提交**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY

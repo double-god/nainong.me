@@ -1,42 +1,68 @@
+# ==========================================
+# Docker Compose 配置
+# 支持两种部署模式：
+# 1. 本地构建: DOCKER_BUILD=1 docker compose up
+# 2. 远程镜像: docker compose up (生产环境，从 Docker Hub 拉取)
+# ==========================================
+
+# 声明外部环境变量
+x-docker-variables: &docker-vars
+  DOCKER_USERNAME: "your-dockerhub-username"  # 生产环境会替换为实际值
 
 services:
   # --- 后端服务 ---
   backend:
-    # 指向 backend 目录下的 Dockerfile
+    # 生产环境: 使用远程镜像
+    image: ${DOCKER_USERNAME:-your-dockerhub-username}/blog-backend:latest
+    # 本地开发: 使用本地构建
     build:
       context: ./backend
       dockerfile: Dockerfile
+    # 根据环境变量决定是否构建
+    profiles:
+      - build  # 使用 --profile build 时启用本地构建
     container_name: blog-backend
     restart: always
     # 挂载数据卷：确保删除容器后，数据库不丢失
     volumes:
       - ./backend/pb_data:/app/pb_data
-    # 限制资源 (防止 OOM)
+    # 限制资源 (适配 2核2GB 服务器)
     deploy:
       resources:
         limits:
           cpus: '0.50'
-          memory: 256M  # 【建议】从 128M 提升到 256M，防止 OOM 重启
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
 
   # --- 前端服务 ---
   frontend:
-    # 指向 frontend 目录下的 Dockerfile
+    # 生产环境: 使用远程镜像
+    image: ${DOCKER_USERNAME:-your-dockerhub-username}/blog-frontend:latest
+    # 本地开发: 使用本地构建
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    profiles:
+      - build  # 使用 --profile build 时启用本地构建
     container_name: blog-frontend
     restart: always
     environment:
       # 这里用于浏览器端 JS 访问 (比如点赞功能)，需要填你的公网域名
-      - PUBLIC_API_URL=https://api.nainong.me
-    # 不需要映射端口出来，由 Nginx 反代即可，或者映射用于测试
+      - PUBLIC_API_URL=${PUBLIC_API_URL:-https://api.nainong.me}
+    # 不需要映射端口出来，由 Nginx 反代即可
     expose:
-      - "4321"
+      - "80"
+    # 限制资源 (适配 2核2GB 服务器)
     deploy:
       resources:
         limits:
           cpus: '1.0'
           memory: 300M
+        reservations:
+          cpus: '0.50'
+          memory: 150M
 
   # --- 网关服务 ---
   nginx:
