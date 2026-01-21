@@ -27,7 +27,7 @@ export function MusicPlayer() {
 
         if (musicList.length > 0) {
           // 使用第一首音乐作为默认曲目
-          setPlayerState({ type: 'update', payload: { currentTrack: musicList[0] })
+          setPlayerState({ type: 'update', payload: { currentTrack: musicList[0] } })
         } else {
           // 降级到示例数据
           setPlayerState({ type: 'update', payload: { currentTrack: DEMO_TRACK } })
