@@ -1,32 +1,34 @@
 ---
-import { getSortedPosts } from '@/utils/content';
-import { marked } from 'marked';
-import MarkdownLayout from '@/layouts/MarkdownLayout.astro';
-import PostMetaInfo from '@/components/post/PostMetaInfo.astro';
-import PostArchiveInfo from '@/components/post/PostArchiveInfo.astro';
+import { getSortedPosts } from '@/utils/content'
+import { marked } from 'marked'
+import MarkdownLayout from '@/layouts/MarkdownLayout.astro'
+import PostMetaInfo from '@/components/post/PostMetaInfo.astro'
+import PostArchiveInfo from '@/components/post/PostArchiveInfo.astro'
 
 // 1. 生成静态路径 (告诉 Astro 有哪些文章页面要生成)
 export async function getStaticPaths() {
-  const posts = await getSortedPosts();
+  const posts = await getSortedPosts()
   return posts.map((post) => ({
     params: { slug: post.slug || post.id }, // 如果没有 slug 就用 id
     props: { post },
-  }));
+  }))
 }
 
-const { post } = Astro.props;
+const { post } = Astro.props
 
 // 2. 把 Markdown 转换成 HTML
-const htmlContent = await marked.parse(post.content || '');
+const htmlContent = await marked.parse(post.content || '')
 
 // 处理日期格式
-const date = new Date(post.created);
+const date = new Date(post.created)
 ---
 
 <MarkdownLayout
   title={post.title}
   description={post.summary}
-  image={post.cover ? `https://nainong.me/api/files/${post.collectionId}/${post.id}/${post.cover}` : undefined}
+  image={post.cover
+    ? `https://nainong.me/api/files/${post.collectionId}/${post.id}/${post.cover}`
+    : undefined}
   mdTitle={post.title}
   mdSlug={`/posts/${post.slug || post.id}`}
 >
