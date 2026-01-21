@@ -2,13 +2,14 @@ import { useAtom, useAtomValue } from 'jotai'
 import { musicControlsAtom, musicPlayerAtom, type MusicTrack } from '@/store/music'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
+import { getMusicList } from '@/utils/content'
 
-// 示例音乐数据，可以替换为实际的音乐来源
+// 示例音乐数据（作为降级方案）
 const DEMO_TRACK: MusicTrack = {
   id: '1',
   title: '示例音乐',
   cover: 'https://object.lxchapu.com/bed%2F2024%2F0507_6e3e8f73df2d4e6d.webp',
-  url: '', // 在这里添加音乐文件 URL
+  url: '',
 }
 
 export function MusicPlayer() {
@@ -19,9 +20,22 @@ export function MusicPlayer() {
 
   // 初始化音乐
   useEffect(() => {
-    if (!currentTrack) {
-      setPlayerState({ type: 'update', payload: { currentTrack: DEMO_TRACK } })
+    const initMusic = async () => {
+      if (!currentTrack) {
+        // 尝试从 PocketBase 获取音乐列表
+        const musicList = await getMusicList()
+
+        if (musicList.length > 0) {
+          // 使用第一首音乐作为默认曲目
+          setPlayerState({ type: 'update', payload: { currentTrack: musicList[0] })
+        } else {
+          // 降级到示例数据
+          setPlayerState({ type: 'update', payload: { currentTrack: DEMO_TRACK } })
+        }
+      }
     }
+
+    initMusic()
   }, [currentTrack, setPlayerState])
 
   // 处理音频播放
