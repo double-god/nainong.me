@@ -128,22 +128,22 @@ jobs:
           echo "当前用户: $(whoami)"
 
           echo "=== 拉取最新镜像 ==="
-          sudo docker compose pull
+          docker compose pull
 
           echo "=== 停止旧容器 ==="
-          sudo docker compose down
+          docker compose down
 
           echo "=== 启动新容器 ==="
-          sudo docker compose up -d
+          docker compose up -d
 
           echo "=== 等待容器启动 ==="
           sleep 10
 
           echo "=== 查看容器状态 ==="
-          sudo docker compose ps
+          docker compose ps
 
           echo "=== 清理未使用的镜像 ==="
-          sudo docker image prune -af --filter "until=72h"
+          docker image prune -af --filter "until=72h"
 
           echo "=== 部署完成 ==="
 
@@ -162,9 +162,9 @@ jobs:
           echo "=== 健康检查 ==="
 
           # 检查容器状态
-          if ! sudo docker compose ps | grep -q "Up"; then
+          if ! docker compose ps | grep -q "Up"; then
             echo "❌ 容器启动失败"
-            sudo docker compose logs
+            docker compose logs
             exit 1
           fi
 
