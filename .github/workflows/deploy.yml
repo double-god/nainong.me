@@ -1,6 +1,6 @@
 # ==========================================
-# 自动化部署工作流
-# 部署到 2核2GB 服务器
+# 自动化部署工作流 - Self-Hosted Runner
+# 适用于在服务器上直接运行的 GitHub Actions Runner
 # ==========================================
 
 name: Deploy to Production
@@ -56,7 +56,6 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          # 针对低内存服务器优化构建
           build-args: |
             NODE_OPTIONS=--max-old-space-size=1536
 
@@ -102,70 +101,76 @@ jobs:
           cache-to: type=gha,mode=max
 
   # ==========================================
-  # Job 3: 部署到服务器
+  # Job 3: 部署到服务器 (Self-Hosted Runner)
   # ==========================================
   deploy:
     name: Deploy to Server
     needs: [build-frontend, build-backend]
-    runs-on: ubuntu-latest
+    runs-on: self-hosted  # 使用自托管运行器
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 复制 docker-compose.yml 到服务器
-      - name: Copy Compose Config
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT || 22 }}
-          source: "docker-compose.yml"
-          target: ${{ secrets.DEPLOY_PATH }}
-          strip_components: 0
+      - name: Set Docker Username
+        run: |
+          echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" >> $GITHUB_ENV
 
-      # 执行部署命令
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT || 22 }}
-          script_stop: true
-          script: |
-            set -e
+      - name: Deploy Application
+        run: |
+          set -e
 
-            echo "=== 部署开始 ==="
-            cd ${{ secrets.DEPLOY_PATH }}
+          echo "=== 部署开始 ==="
+          echo "工作目录: $(pwd)"
+          echo "Docker 用户名: $DOCKER_USERNAME"
 
-            echo "=== 拉取最新镜像 ==="
-            docker compose pull
+          echo "=== 拉取最新镜像 ==="
+          docker compose pull
 
-            echo "=== 停止旧容器 ==="
-            docker compose down
+          echo "=== 停止旧容器 ==="
+          docker compose down
 
-            echo "=== 启动新容器 ==="
-            docker compose up -d
+          echo "=== 启动新容器 ==="
+          docker compose up -d
 
-            echo "=== 等待健康检查 ==="
-            sleep 10
+          echo "=== 等待容器启动 ==="
+          sleep 10
 
-            echo "=== 清理未使用的镜像 ==="
-            docker image prune -af --filter "until=72h"
+          echo "=== 查看容器状态 ==="
+          docker compose ps
 
-            echo "=== 查看容器状态 ==="
-            docker compose ps
+          echo "=== 清理未使用的镜像 ==="
+          docker image prune -af --filter "until=72h"
 
-            echo "=== 部署完成 ==="
+          echo "=== 部署完成 ==="
 
-      # 可选: 发送部署通知
       - name: Deployment Summary
         run: |
           echo "## 部署成功 :rocket:" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **前端镜像**: ${{ env.FRONTEND_IMAGE }}:latest" >> $GITHUB_STEP_SUMMARY
-          echo "- **后端镜像**: ${{ env.BACKEND_IMAGE }}:latest" >> $GITHUB_STEP_SUMMARY
-          echo "- **服务器**: ${{ secrets.SSH_HOST }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **提交**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **前端镜像**: \`${{ env.FRONTEND_IMAGE }}:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **后端镜像**: \`${{ env.BACKEND_IMAGE }}:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Runner**: Self-Hosted" >> $GITHUB_STEP_SUMMARY
+          echo "- **提交**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **部署时间**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+
+      - name: Health Check
+        run: |
+          echo "=== 健康检查 ==="
+
+          # 检查容器状态
+          if ! docker compose ps | grep -q "Up"; then
+            echo "❌ 容器启动失败"
+            docker compose logs
+            exit 1
+          fi
+
+          # 检查前端服务
+          if curl -sf http://localhost:80 > /dev/null; then
+            echo "✅ 前端服务正常"
+          else
+            echo "❌ 前端服务无响应"
+            exit 1
+          fi
+
+          echo "✅ 所有服务健康检查通过"
