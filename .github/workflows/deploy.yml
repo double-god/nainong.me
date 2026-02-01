@@ -112,6 +112,18 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Clean Workspace
+        run: |
+          echo "=== 清理工作目录中的受保护文件 ==="
+          # 备份 pb_data 数据（如果存在）
+          if [ -d "backend/pb_data" ]; then
+            sudo mv backend/pb_data /tmp/pb_data.backup
+            echo "✅ 已备份 pb_data 到 /tmp/pb_data.backup"
+          fi
+
+          # 清理其他受保护的文件
+          sudo find . -type f \( -name "*.db" -o -name "*.db-shm" -o -name "*.db-wal" \) ! -path "/tmp/*" -exec rm -f {} \; 2>/dev/null || true
+
       - name: Create .env File
         run: |
           echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" > .env
@@ -146,6 +158,15 @@ jobs:
 
           echo "=== 等待容器启动 ==="
           sleep 10
+
+          echo "=== 恢复备份数据 ==="
+          if [ -d "/tmp/pb_data.backup" ]; then
+            echo "发现备份数据，正在恢复..."
+            sudo cp -r /tmp/pb_data.backup/* backend/pb_data/
+            sudo chown -R 1000:1000 backend/pb_data/
+            sudo rm -rf /tmp/pb_data.backup
+            echo "✅ 数据恢复完成"
+          fi
 
           echo "=== 查看容器状态 ==="
           docker compose ps
