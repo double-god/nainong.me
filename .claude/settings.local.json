@@ -7,7 +7,9 @@
       "Bash(pnpm astro check:*)",
       "Bash(pnpm astro build:*)",
       "Bash(claude mcp add:*)",
-      "Bash(gh workflow run:*)"
+      "Bash(gh workflow run:*)",
+      "Bash(curl:*)",
+      "Bash(echo:*)"
     ]
   }
 }

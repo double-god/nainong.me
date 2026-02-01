@@ -128,8 +128,8 @@ jobs:
           echo "当前用户: $(whoami)"
 
           echo "=== 检查端口占用 ==="
-          if lsof -i :80 -i :443 2>/dev/null | grep -q LISTEN; then
-            echo "⚠️  端口 80/443 被占用，强制清理旧容器"
+          if lsof -i :8080 -i :8443 2>/dev/null | grep -q LISTEN; then
+            echo "⚠️  端口 8080/8443 被占用，强制清理旧容器"
             docker compose down --remove-orphans
             docker compose rm -f
             sleep 2
@@ -176,8 +176,8 @@ jobs:
             exit 1
           fi
 
-          # 检查前端服务
-          if curl -sf http://localhost:80 > /dev/null; then
+          # 检查前端服务（使用 8080 端口）
+          if curl -sf http://localhost:8080 > /dev/null; then
             echo "✅ 前端服务正常"
           else
             echo "❌ 前端服务无响应"
