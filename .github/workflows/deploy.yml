@@ -112,13 +112,15 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set Docker Username
+      - name: Create .env File
         run: |
-          echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" >> $GITHUB_ENV
+          echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" > .env
+          echo "PUBLIC_API_URL=${{ secrets.PUBLIC_API_URL || 'https://api.nainong.me' }}" >> .env
 
       - name: Deploy Application
         run: |
           set -e
+          export DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}"
 
           echo "=== 部署开始 ==="
           echo "工作目录: $(pwd)"

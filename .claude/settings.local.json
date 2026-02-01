@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(pnpm astro check:*)",
+      "Bash(pnpm astro build:*)",
+      "Bash(claude mcp add:*)",
+      "Bash(gh workflow run:*)"
+    ]
+  }
+}
