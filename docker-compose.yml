@@ -23,6 +23,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: blog-backend
+    # 以非 root 用户运行，避免文件权限问题
+    user: "${UID:-1000}:${GID:-1000}"
     restart: always
     # 挂载数据卷：确保删除容器后，数据库不丢失
     volumes:

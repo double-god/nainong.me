@@ -128,6 +128,8 @@ jobs:
         run: |
           echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" > .env
           echo "PUBLIC_API_URL=${{ secrets.PUBLIC_API_URL || 'https://api.nainong.me' }}" >> .env
+          echo "UID=$(id -u)" >> .env
+          echo "GID=$(id -g)" >> .env
 
       - name: Deploy Application
         run: |
