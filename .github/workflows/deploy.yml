@@ -127,14 +127,22 @@ jobs:
           echo "Docker 用户名: $DOCKER_USERNAME"
           echo "当前用户: $(whoami)"
 
+          echo "=== 检查端口占用 ==="
+          if lsof -i :80 -i :443 2>/dev/null | grep -q LISTEN; then
+            echo "⚠️  端口 80/443 被占用，强制清理旧容器"
+            docker compose down --remove-orphans
+            docker compose rm -f
+            sleep 2
+          fi
+
           echo "=== 拉取最新镜像 ==="
           docker compose pull
 
-          echo "=== 停止旧容器 ==="
-          docker compose down
+          echo "=== 停止并删除旧容器 ==="
+          docker compose down --remove-orphans
 
           echo "=== 启动新容器 ==="
-          docker compose up -d
+          docker compose up -d --force-recreate
 
           echo "=== 等待容器启动 ==="
           sleep 10
