@@ -115,14 +115,8 @@ jobs:
       - name: Clean Workspace
         run: |
           echo "=== 清理工作目录中的受保护文件 ==="
-          # 备份 pb_data 数据（如果存在）
-          if [ -d "backend/pb_data" ]; then
-            sudo mv backend/pb_data /tmp/pb_data.backup
-            echo "✅ 已备份 pb_data 到 /tmp/pb_data.backup"
-          fi
-
-          # 清理其他受保护的文件
-          sudo find . -type f \( -name "*.db" -o -name "*.db-shm" -o -name "*.db-wal" \) ! -path "/tmp/*" -exec rm -f {} \; 2>/dev/null || true
+          # 清理其他受保护的文件（不用 sudo，直接删除）
+          find . -type f \( -name "*.db" -o -name "*.db-shm" -o -name "*.db-wal" \) -exec rm -f {} \; 2>/dev/null || true
 
       - name: Create .env File
         run: |
@@ -147,6 +141,9 @@ jobs:
             sleep 2
           fi
 
+          echo "=== 清理旧的数据文件 ==="
+          rm -rf backend/pb_data/* 2>/dev/null || true
+
           echo "=== 拉取最新镜像 ==="
           docker compose pull
 
@@ -158,24 +155,6 @@ jobs:
 
           echo "=== 等待容器启动 ==="
           sleep 10
-
-          echo "=== 修正数据目录权限 ==="
-          # 等待数据库文件创建
-          sleep 5
-          # 将数据库文件权限改为 Runner 用户可读可写
-          RUNNER_UID=$(id -u)
-          RUNNER_GID=$(id -g)
-          sudo chown -R $RUNNER_UID:$RUNNER_GID backend/pb_data/
-          echo "✅ 权限修正完成"
-
-          echo "=== 恢复备份数据 ==="
-          if [ -d "/tmp/pb_data.backup" ]; then
-            echo "发现备份数据，正在恢复..."
-            sudo cp -r /tmp/pb_data.backup/* backend/pb_data/
-            sudo chown -R $RUNNER_UID:$RUNNER_GID backend/pb_data/
-            sudo rm -rf /tmp/pb_data.backup
-            echo "✅ 数据恢复完成"
-          fi
 
           echo "=== 查看容器状态 ==="
           docker compose ps
