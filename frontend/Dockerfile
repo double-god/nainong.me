@@ -35,6 +35,9 @@ ENV NODE_OPTIONS="--max-old-space-size=1536"
 # 构建静态站点（跳过类型检查，只构建）
 RUN pnpm astro build && pnpm pagefind --site dist
 
+# 验证构建产物不为空
+RUN ls -la dist/ && test -n "$(ls -A dist/)" || (echo "Error: dist directory is empty!" && exit 1)
+
 # ==========================================
 # Stage 3: 生产运行时 (使用 nginx 提供静态文件)
 # ==========================================
