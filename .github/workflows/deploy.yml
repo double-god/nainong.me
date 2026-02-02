@@ -109,14 +109,28 @@ jobs:
     runs-on: self-hosted  # 使用自托管运行器
 
     steps:
+      - name: Force Clean Workspace (Pre-Checkout)
+        run: |
+          echo "=== 使用 Docker 容器强制清理旧工作目录 ==="
+          WORK_DIR="/home/runner/actions-runner/_work/nainong.me/nainong.me"
+
+          if [ -d "$WORK_DIR/backend/pb_data" ]; then
+            echo "清理 pb_data 目录（包含 root 权限文件）"
+            # 使用 alpine 容器以 root 身份删除文件
+            docker run --rm -v "$WORK_DIR:/workspace" alpine:latest \
+              sh -c "rm -rf /workspace/backend/pb_data/*"
+          fi
+
+          # 清理其他可能的受保护文件
+          if [ -d "$WORK_DIR" ]; then
+            docker run --rm -v "$WORK_DIR:/workspace" alpine:latest \
+              sh -c "find /workspace -type f \( -name '*.db' -o -name '*.db-shm' -o -name '*.db-wal' \) -delete 2>/dev/null || true"
+          fi
+
+          echo "✅ 清理完成"
+
       - name: Checkout Code
         uses: actions/checkout@v4
-
-      - name: Clean Workspace
-        run: |
-          echo "=== 清理工作目录中的受保护文件 ==="
-          # 清理其他受保护的文件（不用 sudo，直接删除）
-          find . -type f \( -name "*.db" -o -name "*.db-shm" -o -name "*.db-wal" \) -exec rm -f {} \; 2>/dev/null || true
 
       - name: Create .env File
         run: |
