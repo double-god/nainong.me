@@ -128,8 +128,6 @@ jobs:
         run: |
           echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" > .env
           echo "PUBLIC_API_URL=${{ secrets.PUBLIC_API_URL || 'https://api.nainong.me' }}" >> .env
-          echo "UID=$(id -u)" >> .env
-          echo "GID=$(id -g)" >> .env
 
       - name: Deploy Application
         run: |
@@ -161,11 +159,20 @@ jobs:
           echo "=== 等待容器启动 ==="
           sleep 10
 
+          echo "=== 修正数据目录权限 ==="
+          # 等待数据库文件创建
+          sleep 5
+          # 将数据库文件权限改为 Runner 用户可读可写
+          RUNNER_UID=$(id -u)
+          RUNNER_GID=$(id -g)
+          sudo chown -R $RUNNER_UID:$RUNNER_GID backend/pb_data/
+          echo "✅ 权限修正完成"
+
           echo "=== 恢复备份数据 ==="
           if [ -d "/tmp/pb_data.backup" ]; then
             echo "发现备份数据，正在恢复..."
             sudo cp -r /tmp/pb_data.backup/* backend/pb_data/
-            sudo chown -R 1000:1000 backend/pb_data/
+            sudo chown -R $RUNNER_UID:$RUNNER_GID backend/pb_data/
             sudo rm -rf /tmp/pb_data.backup
             echo "✅ 数据恢复完成"
           fi
