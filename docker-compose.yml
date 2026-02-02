@@ -24,8 +24,6 @@ services:
       dockerfile: Dockerfile
     container_name: blog-backend
     restart: always
-    # 以 runner 用户运行，避免权限问题
-    user: "1000:1000"
     # 挂载数据卷：确保删除容器后，数据库不丢失
     volumes:
       - ./backend/pb_data:/app/pb_data

@@ -156,7 +156,9 @@ jobs:
           fi
 
           echo "=== 清理旧的数据文件 ==="
-          rm -rf backend/pb_data/* 2>/dev/null || true
+          # 使用 Docker 容器清理（避免权限问题）
+          docker run --rm -v "$(pwd)/backend/pb_data:/data" alpine:latest \
+            sh -c "rm -rf /data/* 2>/dev/null || true"
 
           echo "=== 拉取最新镜像 ==="
           docker compose pull
