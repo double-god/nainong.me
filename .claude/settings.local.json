@@ -20,7 +20,8 @@
       "Bash(gh run list:*)",
       "Bash(ls:*)",
       "Bash(dir:*)",
-      "Bash(nslookup:*)"
+      "Bash(nslookup:*)",
+      "Bash(gh run watch:*)"
     ]
   }
 }
