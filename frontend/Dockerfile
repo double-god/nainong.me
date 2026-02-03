@@ -6,7 +6,8 @@ WORKDIR /app
 
 # Install dependencies
 COPY package*.json ./
-RUN npm install
+# 跳过 postinstall 钩子（该钩子调用 pnpm，但镜像中只有 npm）
+RUN npm install --ignore-scripts
 
 # Copy source and build
 COPY . .
