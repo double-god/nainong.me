@@ -17,7 +17,7 @@ services:
   # --- 后端服务 ---
   backend:
     # 生产环境: 使用远程镜像
-    image: ${DOCKER_USERNAME:-your-dockerhub-username}/blog-backend:latest
+    image: doublegooood/blog-backend:latest
     # 本地开发时可以手动构建: docker compose build backend
     build:
       context: ./backend
@@ -40,7 +40,7 @@ services:
   # --- 前端服务 ---
   frontend:
     # 生产环境: 使用远程镜像
-    image: ${DOCKER_USERNAME:-your-dockerhub-username}/blog-frontend:latest
+    image: doublegooood/blog-frontend:latest
     # 本地开发时可以手动构建: docker compose build frontend
     build:
       context: ./frontend

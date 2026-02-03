@@ -9,7 +9,18 @@
       "Bash(claude mcp add:*)",
       "Bash(gh workflow run:*)",
       "Bash(curl:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(gh run list --limit 1 --json databaseId,status,conclusion,displayTitle,createdAt)",
+      "WebFetch(domain:api.github.com)",
+      "Bash(gh auth status)",
+      "Bash(gh run view:*)",
+      "Bash(ping:*)",
+      "Bash(git config:*)",
+      "WebSearch",
+      "Bash(gh run list:*)",
+      "Bash(ls:*)",
+      "Bash(dir:*)",
+      "Bash(nslookup:*)"
     ]
   }
 }
