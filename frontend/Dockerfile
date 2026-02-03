@@ -23,5 +23,8 @@ FROM nginx:alpine
 # 注意：从 builder 阶段的 /app/dist 拷贝到 nginx 目录
 COPY --from=builder /app/dist /usr/share/nginx/html
 
+# Copy custom nginx config
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
