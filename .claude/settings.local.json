@@ -21,7 +21,11 @@
       "Bash(ls:*)",
       "Bash(dir:*)",
       "Bash(nslookup:*)",
-      "Bash(gh run watch:*)"
+      "Bash(gh run watch:*)",
+      "Bash(for:*)",
+      "Bash(do echo:*)",
+      "Bash(break:*)",
+      "Bash(done:*)"
     ]
   }
 }
