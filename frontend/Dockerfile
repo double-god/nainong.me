@@ -29,11 +29,17 @@ FROM nginx:alpine
 
 # 拷贝构建产物
 COPY --from=builder /app/dist /usr/share/nginx/html
+
 # 拷贝 Nginx 配置
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# 【强制修复权限】确保 Nginx 用户能读取
-RUN chmod -R 755 /usr/share/nginx/html
+# 【核心修复】去除 Windows 换行符 (CRLF -> LF)
+# 这一步至关重要！防止 Nginx 将 \r 视为路径的一部分
+RUN sed -i 's/\r$//' /etc/nginx/conf.d/default.conf
+
+# 修复权限 (双重保险)
+RUN chmod -R 755 /usr/share/nginx/html && \
+    chown -R nginx:nginx /usr/share/nginx/html
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
