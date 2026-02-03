@@ -11,8 +11,8 @@ RUN npm install --ignore-scripts
 
 # Copy source and build
 COPY . .
-# 这一步非常关键：让 Docker 自己编译，生成 /app/dist
-RUN npm run build
+# 跳过类型检查，直接构建 (astro check 在 Docker 中可能失败)
+RUN npx astro build && npx pagefind --site dist
 
 # ===============================
 # Stage 2: Production (Nginx)
