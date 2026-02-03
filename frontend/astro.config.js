@@ -21,6 +21,7 @@ import swup from '@swup/astro'
 // https://astro.build/config
 export default defineConfig({
   site: site.url,
+  output: 'static', // 强制静态输出，适配 Nginx 部署
   integrations: [
     tailwind(),
     react(),
