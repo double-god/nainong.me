@@ -1,29 +1,31 @@
 # ===============================
-# Stage 1: Build (Compile Frontend)
+# Stage 1: Build
 # ===============================
 FROM node:18-alpine AS builder
 WORKDIR /app
 
-# Install dependencies
-COPY package*.json ./
-# 跳过 postinstall 钩子（该钩子调用 pnpm，但镜像中只有 npm）
-RUN npm install --ignore-scripts
+# 1. 启用 Corepack 以支持 pnpm (Node 18 自带)
+RUN corepack enable
 
-# Copy source and build
+# 2. 复制依赖定义
+COPY package.json pnpm-lock.yaml ./
+
+# 3. 正常安装依赖 (不跳过脚本，确保 Esbuild 正常工作)
+# --frozen-lockfile: 严格按照 lock 文件安装
+RUN pnpm install --frozen-lockfile
+
+# 4. 复制源码并构建
 COPY . .
-# 跳过类型检查，直接构建 (astro check 在 Docker 中可能失败)
-RUN npx astro build && npx pagefind --site dist
+RUN pnpm run build
 
 # ===============================
-# Stage 2: Production (Nginx)
+# Stage 2: Production
 # ===============================
 FROM nginx:alpine
 
-# Copy compiled assets from Stage 1 to Nginx
-# 注意：从 builder 阶段的 /app/dist 拷贝到 nginx 目录
+# 拷贝构建产物
 COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Copy custom nginx config
+# 拷贝 Nginx 配置
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
