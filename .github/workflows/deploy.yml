@@ -21,7 +21,7 @@ jobs:
   # ==========================================
   build-frontend:
     name: Build & Push Frontend
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout Code
@@ -64,7 +64,7 @@ jobs:
   # ==========================================
   build-backend:
     name: Build & Push Backend
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout Code
