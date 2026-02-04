@@ -10,13 +10,13 @@ RUN corepack enable
 # 2. 配置国内镜像源（解决国内网络问题）
 RUN npm config set registry https://registry.npmmirror.com
 
-# 3. 复制依赖文件
-COPY package.json pnpm-lock.yaml ./
+# 3. 复制依赖文件和配置
+COPY package.json pnpm-lock.yaml .npmrc ./
 
 # 4. 删除 prepare 脚本（避免 git hooks 报错）
 RUN npm pkg delete scripts.prepare
 
-# 5. 安装依赖（增加重试次数和超时时间）
+# 5. 安装依赖（.npmrc 中已配置重试和超时）
 RUN pnpm install --frozen-lockfile \
     --network-timeout 180000 \
     --fetch-retries 5 \
