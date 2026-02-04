@@ -17,11 +17,7 @@ COPY package.json pnpm-lock.yaml .npmrc ./
 RUN npm pkg delete scripts.prepare
 
 # 5. 安装依赖（.npmrc 中已配置重试和超时）
-RUN pnpm install --frozen-lockfile \
-    --network-timeout 180000 \
-    --fetch-retries 5 \
-    --fetch-retry-mintimeout 10000 \
-    --fetch-retry-maxtimeout 60000
+RUN pnpm install --frozen-lockfile
 
 # 6. 复制源码并构建
 COPY . .
