@@ -25,7 +25,9 @@
       "Bash(for:*)",
       "Bash(do echo:*)",
       "Bash(break:*)",
-      "Bash(done:*)"
+      "Bash(done:*)",
+      "Bash(while true)",
+      "Bash(do git push:*)"
     ]
   }
 }

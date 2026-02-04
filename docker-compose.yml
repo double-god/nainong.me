@@ -1,29 +1,10 @@
-# ==========================================
-# Docker Compose 配置
-# 使用方法：
-# 1. 生产环境（推荐）: docker compose up
-#    - 自动从 Docker Hub 拉取最新镜像
-#    - 需要设置 DOCKER_USERNAME 环境变量
-#
-# 2. 本地开发构建: docker compose build && docker compose up
-#    - 本地构建镜像并启动
-# ==========================================
-
-# 声明外部环境变量
-x-docker-variables: &docker-vars
-  DOCKER_USERNAME: "your-dockerhub-username"  # 生产环境会替换为实际值
-
 services:
-  # --- 后端服务 ---
   backend:
-    # 生产环境: 使用远程镜像
     image: doublegooood/blog-backend:latest
     container_name: blog-backend
     restart: always
-    # 挂载数据卷：确保删除容器后，数据库不丢失
     volumes:
       - ./backend/pb_data:/app/pb_data
-    # 限制资源 (适配 2核2GB 服务器)
     deploy:
       resources:
         limits:
@@ -33,19 +14,14 @@ services:
           cpus: '0.25'
           memory: 128M
 
-  # --- 前端服务 ---
   frontend:
-    # 生产环境: 使用远程镜像
     image: doublegooood/blog-frontend:latest
     container_name: blog-frontend
     restart: always
     environment:
-      # 这里用于浏览器端 JS 访问 (比如点赞功能)，需要填你的公网域名
       - PUBLIC_API_URL=${PUBLIC_API_URL:-https://api.nainong.me}
-    # 不需要映射端口出来，由 Nginx 反代即可
     expose:
       - "80"
-    # 限制资源 (适配 2核2GB 服务器)
     deploy:
       resources:
         limits:
@@ -55,19 +31,15 @@ services:
           cpus: '0.50'
           memory: 150M
 
-  # --- 网关服务 ---
   nginx:
     image: nginx:alpine
     container_name: blog-gateway
     restart: always
     ports:
-      - "8080:80"   # HTTP 端口（避免与 1Panel 的 80 端口冲突）
-      - "8443:443"  # HTTPS 端口（避免与 1Panel 的 443 端口冲突）
-    # 挂载配置文件和证书
+      - "8080:80"
+      - "8443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      # 如果你还没申请证书，先把下面这一行注释掉
-      # - ./nginx/ssl:/etc/nginx/ssl:ro
     depends_on:
       - backend
       - frontend
