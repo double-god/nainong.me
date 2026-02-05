@@ -105,9 +105,7 @@ export function MusicPlayer() {
     setPlayerState({ type: 'update', payload: { isExpanded: false } })
   }
 
-  if (!currentTrack) return null
-
-  // 调试：确认 audio 元素已挂载
+  // 调试：确认 audio 元素已挂载（必须在条件 return 之前）
   useEffect(() => {
     if (audioRef.current) {
       console.log('MusicPlayer: audio 元素已挂载', {
@@ -119,6 +117,8 @@ export function MusicPlayer() {
       console.log('MusicPlayer: audio 元素未挂载')
     }
   }, [currentTrack])
+
+  if (!currentTrack) return null
 
   return (
     <>
