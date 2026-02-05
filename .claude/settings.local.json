@@ -27,7 +27,8 @@
       "Bash(break:*)",
       "Bash(done:*)",
       "Bash(while true)",
-      "Bash(do git push:*)"
+      "Bash(do git push:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }

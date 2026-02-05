@@ -26,22 +26,39 @@ export function MusicEdgeLighting({ isPlaying, playStartTime }: MusicEdgeLightin
     }))
   }, [])
 
+  // 🐛 调试：组件已加载
+  useEffect(() => {
+    console.log('🎵 MusicEdgeLighting 组件已挂载')
+  }, [])
+
   // 计算透明度
   const opacity = useMemo(() => {
-    if (!isPlaying) return 0
+    if (!isPlaying) {
+      console.log('🔴 MusicEdgeLighting: isPlaying = false, opacity = 0')
+      return 0
+    }
 
     // 如果正在播放但没有时间戳，显示动画（用于测试）
-    if (!playStartTime) return 1
+    if (!playStartTime) {
+      console.log('🟢 MusicEdgeLighting: isPlaying = true, 无 playStartTime, opacity = 1 (测试模式)')
+      return 1
+    }
 
     const elapsed = Date.now() - playStartTime
+    let calculatedOpacity: number
+
     if (elapsed < 800) {
       // 前0.8秒淡入
-      return elapsed / 800
+      calculatedOpacity = elapsed / 800
     } else if (elapsed > 6000) {
       // 6秒后淡出
-      return Math.max(0, 1 - (elapsed - 6000) / 1500)
+      calculatedOpacity = Math.max(0, 1 - (elapsed - 6000) / 1500)
+    } else {
+      calculatedOpacity = 1
     }
-    return 1
+
+    console.log(`🟢 MusicEdgeLighting: isPlaying = true, elapsed = ${elapsed}ms, opacity = ${calculatedOpacity.toFixed(2)}`)
+    return calculatedOpacity
   }, [isPlaying, playStartTime])
 
   return (
