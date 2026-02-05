@@ -62,7 +62,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # ==========================================
+# ==========================================
   # Job 2: Deploy to Server (Self-Hosted Runner)
   # ==========================================
   deploy:
@@ -71,6 +71,45 @@ jobs:
     runs-on: self-hosted
 
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Generate Production Nginx Config
+        run: |
+          mkdir -p nginx
+          cat > nginx/nginx.conf <<'EOF'
+          events { worker_connections 1024; }
+          http {
+              include mime.types;
+              default_type application/octet-stream;
+              gzip on;
+              server {
+                  listen 80;
+
+                  # 1. 静态资源：强力前缀匹配，优先级最高 (解决 CSS 404/MIME 报错)
+                  location ^~ /_astro/ {
+                      proxy_pass http://blog-frontend:80;
+                      proxy_set_header Host $host;
+                      expires -1;
+                      add_header Cache-Control "no-store, no-cache, must-revalidate";
+                  }
+
+                  # 2. 后端 API：仅匹配特定前缀，避免拦截静态资源
+                  location ~ ^/(api|_admin|_schema) {
+                      proxy_pass http://blog-backend:8090;
+                      proxy_set_header Host $host;
+                      proxy_set_header X-Real-IP $remote_addr;
+                  }
+
+                  # 3. 默认前端转发
+                  location / {
+                      proxy_pass http://blog-frontend:80;
+                      proxy_set_header Host $host;
+                  }
+              }
+          }
+          EOF
+
       - name: Generate docker-compose.yml
         run: |
           cat > docker-compose.yml <<'EOF'
@@ -86,16 +125,13 @@ jobs:
                   limits:
                     cpus: '0.50'
                     memory: 256M
-                  reservations:
-                    cpus: '0.25'
-                    memory: 128M
 
             frontend:
               image: doublegooood/blog-frontend:latest
               container_name: blog-frontend
               restart: always
               environment:
-                - PUBLIC_API_URL=${PUBLIC_API_URL:-https://api.nainong.me}
+                - PUBLIC_API_URL=${{ secrets.PUBLIC_API_URL || 'https://api.nainong.me' }}
               expose:
                 - "80"
               deploy:
@@ -103,9 +139,6 @@ jobs:
                   limits:
                     cpus: '1.0'
                     memory: 300M
-                  reservations:
-                    cpus: '0.50'
-                    memory: 150M
 
             nginx:
               image: nginx:alpine
@@ -113,46 +146,26 @@ jobs:
               restart: always
               ports:
                 - "8080:80"
-                - "8443:443"
               volumes:
                 - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
               depends_on:
                 - backend
                 - frontend
-              deploy:
-                resources:
-                  limits:
-                    cpus: '0.25'
-                    memory: 128M
           EOF
 
-      - name: Pre-Cleanup (Remove Old Data)
-        run: |
-          # 使用 Docker 容器清理 root 权限文件
-          docker run --rm -v "$(pwd)/backend/pb_data:/data" alpine:latest \
-            sh -c "rm -rf /data/* 2>/dev/null || true"
-
-      - name: Pull Latest Images
+      - name: Pull and Re-deploy
         run: |
           docker compose pull
-
-      - name: Deploy Application
-        run: |
+          # 停止旧容器并彻底重建，确保不再使用旧的哈希文件
           docker compose down --remove-orphans
           docker compose up -d --force-recreate --no-build
-
-      - name: Wait for Health Check
-        run: |
-          sleep 15
-          docker compose ps
-
-      - name: Critical Cleanup (Free Disk Space)
-        run: |
-          # 清理未使用的镜像和构建缓存，释放 2GB 服务器空间
-          docker system prune -af --filter "until=1h"
+          # 关键：确保网关重载最新的 Nginx 配置
+          docker exec blog-gateway nginx -s reload
 
       - name: Health Check
         run: |
+          # 给予 2GB 内存服务器足够的启动缓冲时间
+          sleep 15
           if curl -sf http://localhost:8080 > /dev/null; then
             echo "✅ Deployment successful"
           else
@@ -160,3 +173,9 @@ jobs:
             docker compose logs --tail=50
             exit 1
           fi
+
+      - name: Intelligent Cleanup
+        run: |
+          # 仅清理超过 1 小时的孤儿镜像，不影响当前运行版本
+          docker image prune -f --filter "until=1h"
+          docker builder prune -f
