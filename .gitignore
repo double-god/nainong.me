@@ -27,6 +27,10 @@ pnpm-debug.log*
 .env.production
 .env.production.local
 
+# R2 Configuration (contains sensitive API keys)
+r2-config.json
+backend/scripts/r2-config.json
+
 # Database files
 *.db
 *.db-shm

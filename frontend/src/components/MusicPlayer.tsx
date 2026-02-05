@@ -4,14 +4,6 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import { getMusicList } from '@/utils/content'
 
-// 示例音乐数据（作为降级方案）
-const DEMO_TRACK: MusicTrack = {
-  id: '1',
-  title: '示例音乐',
-  cover: 'https://object.lxchapu.com/bed%2F2024%2F0507_6e3e8f73df2d4e6d.webp',
-  url: '',
-}
-
 export function MusicPlayer() {
   const [, setPlayerState] = useAtom(musicControlsAtom)
   const { isPlaying, isExpanded, currentTrack } = useAtomValue(musicPlayerAtom)
