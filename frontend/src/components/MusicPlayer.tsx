@@ -38,18 +38,27 @@ export function MusicPlayer() {
     const audio = audioRef.current
     if (!audio) return
 
+    console.log('MusicPlayer: 播放状态变化', { isPlaying, currentTrack: currentTrack?.title, playStartTime })
+
     if (isPlaying && currentTrack?.url) {
-      if (!playStartTime) {
-        setPlayStartTime(Date.now())
-      }
+      // 使用函数式更新避免闭包陷阱
+      setPlayStartTime(prev => {
+        if (!prev) {
+          const startTime = Date.now()
+          console.log('MusicPlayer: 设置 playStartTime =', startTime)
+          return startTime
+        }
+        return prev
+      })
       audio.play().catch(console.error)
     } else {
+      console.log('MusicPlayer: 暂停播放')
       audio.pause()
       if (!isPlaying) {
         setPlayStartTime(undefined)
       }
     }
-  }, [isPlaying, currentTrack, playStartTime])
+  }, [isPlaying, currentTrack?.url])
 
   // 更新播放进度
   useEffect(() => {
@@ -93,9 +102,32 @@ export function MusicPlayer() {
 
   if (!currentTrack) return null
 
+  // 调试：确认 audio 元素已挂载
+  useEffect(() => {
+    if (audioRef.current) {
+      console.log('MusicPlayer: audio 元素已挂载', {
+        src: audioRef.current.src,
+        loop: audioRef.current.loop,
+        readyState: audioRef.current.readyState
+      })
+    } else {
+      console.log('MusicPlayer: audio 元素未挂载')
+    }
+  }, [currentTrack])
+
   return (
     <>
       <audio ref={audioRef} src={currentTrack.url} loop />
+
+      {/* 🔴 调试层：无条件渲染，确认组件是否在运行 */}
+      <div className="fixed top-20 right-4 z-[100] bg-yellow-400 text-black p-4 rounded shadow-2xl text-sm font-mono">
+        <div className="font-bold mb-2">🎵 MUSIC PLAYER DEBUG</div>
+        <div>isPlaying: {String(isPlaying)}</div>
+        <div>isExpanded: {String(isExpanded)}</div>
+        <div>playStartTime: {playStartTime ? new Date(playStartTime).toISOString() : 'undefined'}</div>
+        <div>currentTrack: {currentTrack?.title || 'undefined'}</div>
+        <div>displayProgress: {displayProgress.toFixed(1)}%</div>
+      </div>
 
       {/* 欢迎提示框（首次加载显示） */}
       <MusicWelcomeToast />
