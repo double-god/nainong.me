@@ -76,7 +76,7 @@ jobs:
         run: |
           # 借用 alpine 镜像挂载当前工作目录，强制删除无权访问的数据库文件
           # 这样不需要 sudo 密码也能干掉 root 创建的文件
-          docker run --rm -v "$(pwd):/src" alpine:latest sh -c "rm -rf /src/backend/pb_data/data.db || true"
+          docker run --rm -v "$(pwd):/src" alpine:latest sh -c "rm -rf /src/backend/pb_data/* || true"
 
       # --- 第二步：现在 Checkout 就不会报 EACCES 错误了 ---
       - name: Checkout Code
