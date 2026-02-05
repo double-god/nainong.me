@@ -71,6 +71,13 @@ jobs:
     runs-on: self-hosted
 
     steps:
+      - name: Fix workspace permissions
+        run: |
+          # 使用 sudo 强制将工作目录的所有权改回给当前 runner 用户
+          sudo chown -R $USER:$USER ${{ github.workspace }} || true
+          # 或者直接删除冲突的 db 文件（因为你有挂载备份，且部署时会重新生成/拉取）
+          # sudo rm -rf ${{ github.workspace }}/backend/pb_data/data.db || true
+
       - name: Checkout Code
         uses: actions/checkout@v4
 
