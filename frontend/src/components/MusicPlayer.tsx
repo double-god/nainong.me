@@ -72,10 +72,15 @@ export function MusicPlayer() {
 
     const handleEnded = () => {
       // 单曲循环：重新播放
+      console.log('🔄 Audio ended 事件触发！开始单曲循环...')
       if (audioRef.current) {
+        console.log('🔄 重置 currentTime = 0')
         audioRef.current.currentTime = 0
+        console.log('🔄 调用 audio.play()')
         audioRef.current.play().catch(console.error)
-        setPlayStartTime(Date.now())
+        const newStartTime = Date.now()
+        console.log('🔄 重置 playStartTime =', newStartTime)
+        setPlayStartTime(newStartTime)
       }
     }
 

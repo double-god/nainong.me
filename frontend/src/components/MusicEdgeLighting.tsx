@@ -31,20 +31,40 @@ export function MusicEdgeLighting({ isPlaying, playStartTime }: MusicEdgeLightin
 
   // 计算透明度
   const opacity = useMemo(() => {
-    if (!isPlaying) return 0
+    if (!isPlaying) {
+      console.log('🔴 Edge Lighting: isPlaying = false')
+      return 0
+    }
 
     // 如果正在播放但没有时间戳，显示动画（用于测试）
-    if (!playStartTime) return 1
+    if (!playStartTime) {
+      console.log('🟢 Edge Lighting: isPlaying = true, 无 playStartTime')
+      return 1
+    }
 
     const elapsed = Date.now() - playStartTime
+    console.log('⏱️ Edge Lighting 时间计算:', {
+      now: Date.now(),
+      start: playStartTime,
+      elapsed: elapsed,
+      elapsedSeconds: (elapsed / 1000).toFixed(2)
+    })
+
+    let calculatedOpacity: number
     if (elapsed < 800) {
       // 前0.8秒淡入
-      return elapsed / 800
+      calculatedOpacity = elapsed / 800
+      console.log('🟢 淡入阶段:', calculatedOpacity.toFixed(2))
     } else if (elapsed > 6000) {
       // 6秒后淡出
-      return Math.max(0, 1 - (elapsed - 6000) / 1500)
+      calculatedOpacity = Math.max(0, 1 - (elapsed - 6000) / 1500)
+      console.log('🔴 淡出阶段:', calculatedOpacity.toFixed(2))
+    } else {
+      calculatedOpacity = 1
+      console.log('✅ 正常显示:', calculatedOpacity.toFixed(2))
     }
-    return 1
+
+    return calculatedOpacity
   }, [isPlaying, playStartTime])
 
   // 调试信息
