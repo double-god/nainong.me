@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.983.0",
+    "glob": "^13.0.1"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "accountId": "your-account-id",
+  "accessKeyId": "your-access-key-id",
+  "secretAccessKey": "your-secret-access-key",
+  "bucket": "nainong-blog",
+  "region": "auto",
+  "endpoint": "https://your-account-id.r2.cloudflarestorage.com",
+  "publicUrl": "https://your-domain.com"
+}
