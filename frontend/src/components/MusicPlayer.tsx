@@ -13,6 +13,9 @@ export function MusicPlayer() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [displayProgress, setDisplayProgress] = useState(0)
 
+  // 调试信息
+  console.log('MusicPlayer render:', { isPlaying, isExpanded, currentTrack, playStartTime })
+
   // 初始化音乐
   useEffect(() => {
     const initMusic = async () => {

@@ -7,6 +7,9 @@ interface MusicEdgeLightingProps {
 }
 
 export function MusicEdgeLighting({ isPlaying, playStartTime }: MusicEdgeLightingProps) {
+  // 调试信息
+  console.log('MusicEdgeLighting render:', { isPlaying, playStartTime })
+
   // 生成辐射线条数据
   const radiatingLines = useMemo(() => {
     return Array.from({ length: 20 }, (_, i) => ({
