@@ -16,13 +16,19 @@ COPY package.json pnpm-lock.yaml .npmrc ./
 # 4. 删除 prepare 脚本（避免 git hooks 报错）
 RUN npm pkg delete scripts.prepare
 
+# 4.5. 设置 Node 内存限制（通过 ARG 传入）
+ARG NODE_OPTIONS=--max-old-space-size=2048
+ENV NODE_OPTIONS=${NODE_OPTIONS}
+
 # 5. 安装依赖（.npmrc 中已配置重试和超时）
 RUN pnpm install --frozen-lockfile
 
 # 6. 复制源码并构建
 COPY . .
 # 跳过 astro check，直接构建
-RUN pnpm astro build && pnpm pagefind --site dist
+# pagefind 失败不影响构建
+RUN pnpm astro build
+RUN pnpm pagefind --site dist || echo "Warning: pagefind failed, continuing..."
 
 # ===============================
 # Stage 2: Production
