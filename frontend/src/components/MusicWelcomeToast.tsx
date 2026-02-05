@@ -28,7 +28,7 @@ export function MusicWelcomeToast() {
     <AnimatePresence>
       {show && (
         <motion.div
-          className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2"
+          className="fixed left-4 bottom-32 z-50"
           initial={{ scale: 0, opacity: 0, rotate: -180 }}
           animate={{ scale: 1, opacity: 1, rotate: 0 }}
           exit={{

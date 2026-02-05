@@ -23,14 +23,16 @@ export function MusicEdgeLighting({ isPlaying, playStartTime }: MusicEdgeLightin
       delay: Math.random() * 2,
       // 随机动画时长
       duration: Math.random() * 1 + 0.8,
-      // 随机角度偏移（让线条更自然）
-      angle: Math.random() * 20 - 10,
     }))
   }, [])
 
-  // 计算播放时长，超过6秒后淡化
+  // 计算透明度
   const opacity = useMemo(() => {
-    if (!isPlaying || !playStartTime) return 0
+    if (!isPlaying) return 0
+
+    // 如果正在播放但没有时间戳，显示动画（用于测试）
+    if (!playStartTime) return 1
+
     const elapsed = Date.now() - playStartTime
     if (elapsed < 800) {
       // 前0.8秒淡入
