@@ -47,6 +47,9 @@ export function MusicEdgeLighting({ isPlaying, playStartTime }: MusicEdgeLightin
     return 1
   }, [isPlaying, playStartTime])
 
+  // 调试信息
+  console.log('MusicEdgeLighting opacity:', opacity.toFixed(2), 'should render:', isPlaying && opacity > 0)
+
   return (
     <AnimatePresence>
       {isPlaying && opacity > 0 && (
@@ -56,6 +59,13 @@ export function MusicEdgeLighting({ isPlaying, playStartTime }: MusicEdgeLightin
           animate={{ opacity }}
           exit={{ opacity: 0, transition: { duration: 1.5 } }}
         >
+          {/* 调试：添加一个明显的红色背景框来确认渲染 */}
+          <div className="absolute inset-0 bg-red-500/10 z-50 pointer-events-none">
+            <div className="absolute top-4 left-4 text-red-500 font-bold text-2xl">
+              EDGE LIGHTING TEST - opacity: {opacity.toFixed(2)}
+            </div>
+          </div>
+
           {/* ========== 四边主边框流光（三星侧屏闪光风格）========== */}
 
           {/* 顶边：从中心向两端展开 */}
