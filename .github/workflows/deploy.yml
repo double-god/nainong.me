@@ -71,18 +71,20 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Force Cleanup Root Files
+      # --- 第一步：用 Docker 容器"降维打击"清理权限文件 ---
+      - name: Cleanup Root Files via Docker
         run: |
-          # 只有 sudo rm 才能删掉 root 创建的数据库文件
-          sudo rm -rf ${{ github.workspace }}/backend/pb_data/data.db || true
-          # 确保整个目录对 runner 用户可见
-          sudo chown -R $USER:$USER ${{ github.workspace }}
+          # 借用 alpine 镜像挂载当前工作目录，强制删除无权访问的数据库文件
+          # 这样不需要 sudo 密码也能干掉 root 创建的文件
+          docker run --rm -v "$(pwd):/src" alpine:latest sh -c "rm -rf /src/backend/pb_data/data.db || true"
 
+      # --- 第二步：现在 Checkout 就不会报 EACCES 错误了 ---
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          clean: false  # 关键：禁止 checkout 自动清理，由我们手动清理
+          clean: true # 允许它清理其他非 root 文件
 
+      # --- 第三步：生成 Nginx 配置 ---
       - name: Generate Production Nginx Config
         run: |
           mkdir -p nginx
@@ -94,23 +96,17 @@ jobs:
               gzip on;
               server {
                   listen 80;
-
-                  # 1. 静态资源：强力前缀匹配，优先级最高 (解决 CSS 404/MIME 报错)
+                  # 静态资源强匹配，解决 CSS 丢失
                   location ^~ /_astro/ {
                       proxy_pass http://blog-frontend:80;
                       proxy_set_header Host $host;
                       expires -1;
                       add_header Cache-Control "no-store, no-cache, must-revalidate";
                   }
-
-                  # 2. 后端 API：仅匹配特定前缀，避免拦截静态资源
                   location ~ ^/(api|_admin|_schema) {
                       proxy_pass http://blog-backend:8090;
                       proxy_set_header Host $host;
-                      proxy_set_header X-Real-IP $remote_addr;
                   }
-
-                  # 3. 默认前端转发
                   location / {
                       proxy_pass http://blog-frontend:80;
                       proxy_set_header Host $host;
@@ -119,62 +115,15 @@ jobs:
           }
           EOF
 
-      - name: Generate docker-compose.yml
-        run: |
-          cat > docker-compose.yml <<'EOF'
-          services:
-            backend:
-              image: doublegooood/blog-backend:latest
-              container_name: blog-backend
-              restart: always
-              volumes:
-                # 改为挂载到宿主机的绝对路径，避开 git 扫描范围
-                - /home/runner/pb_data:/app/pb_data
-              deploy:
-                resources:
-                  limits:
-                    cpus: '0.50'
-                    memory: 256M
-
-            frontend:
-              image: doublegooood/blog-frontend:latest
-              container_name: blog-frontend
-              restart: always
-              environment:
-                - PUBLIC_API_URL=${{ secrets.PUBLIC_API_URL || 'https://api.nainong.me' }}
-              expose:
-                - "80"
-              deploy:
-                resources:
-                  limits:
-                    cpus: '1.0'
-                    memory: 300M
-
-            nginx:
-              image: nginx:alpine
-              container_name: blog-gateway
-              restart: always
-              ports:
-                - "8080:80"
-              volumes:
-                - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-              depends_on:
-                - backend
-                - frontend
-          EOF
-
+      # --- 第四步：部署 (这一步会保留你的 pb_data 文件夹，只更新容器) ---
       - name: Pull and Re-deploy
         run: |
           docker compose pull
-          # 停止旧容器并彻底重建，确保不再使用旧的哈希文件
-          docker compose down --remove-orphans
           docker compose up -d --force-recreate --no-build
-          # 关键：确保网关重载最新的 Nginx 配置
           docker exec blog-gateway nginx -s reload
 
       - name: Health Check
         run: |
-          # 给予 2GB 内存服务器足够的启动缓冲时间
           sleep 15
           if curl -sf http://localhost:8080 > /dev/null; then
             echo "✅ Deployment successful"
@@ -186,6 +135,5 @@ jobs:
 
       - name: Intelligent Cleanup
         run: |
-          # 仅清理超过 1 小时的孤儿镜像，不影响当前运行版本
           docker image prune -f --filter "until=1h"
           docker builder prune -f
