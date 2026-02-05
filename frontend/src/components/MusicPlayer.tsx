@@ -3,8 +3,11 @@ import { musicControlsAtom, musicPlayerAtom, type MusicTrack } from '@/store/mus
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import { getMusicList } from '@/utils/content'
+import { MusicWelcomeToast } from './MusicWelcomeToast'
+import { MusicEdgeLighting } from './MusicEdgeLighting'
 
 export function MusicPlayer() {
+  const [playStartTime, setPlayStartTime] = useState<number | undefined>()
   const [, setPlayerState] = useAtom(musicControlsAtom)
   const { isPlaying, isExpanded, currentTrack } = useAtomValue(musicPlayerAtom)
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -20,9 +23,6 @@ export function MusicPlayer() {
         if (musicList.length > 0) {
           // 使用第一首音乐作为默认曲目
           setPlayerState({ type: 'update', payload: { currentTrack: musicList[0] } })
-        } else {
-          // 降级到示例数据
-          setPlayerState({ type: 'update', payload: { currentTrack: DEMO_TRACK } })
         }
       }
     }
@@ -30,14 +30,23 @@ export function MusicPlayer() {
     initMusic()
   }, [currentTrack, setPlayerState])
 
-  // 处理音频播放
+  // 处理音频播放和播放时间追踪
   useEffect(() => {
-    if (isPlaying && audioRef.current && currentTrack?.url) {
-      audioRef.current.play().catch(console.error)
-    } else if (audioRef.current) {
-      audioRef.current.pause()
+    const audio = audioRef.current
+    if (!audio) return
+
+    if (isPlaying && currentTrack?.url) {
+      if (!playStartTime) {
+        setPlayStartTime(Date.now())
+      }
+      audio.play().catch(console.error)
+    } else {
+      audio.pause()
+      if (!isPlaying) {
+        setPlayStartTime(undefined)
+      }
     }
-  }, [isPlaying, currentTrack])
+  }, [isPlaying, currentTrack, playStartTime])
 
   // 更新播放进度
   useEffect(() => {
@@ -50,8 +59,12 @@ export function MusicPlayer() {
     }
 
     const handleEnded = () => {
-      setPlayerState({ type: 'update', payload: { isPlaying: false } })
-      setDisplayProgress(0)
+      // 单曲循环：重新播放
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0
+        audioRef.current.play().catch(console.error)
+        setPlayStartTime(Date.now())
+      }
     }
 
     audio.addEventListener('timeupdate', handleTimeUpdate)
@@ -79,7 +92,13 @@ export function MusicPlayer() {
 
   return (
     <>
-      <audio ref={audioRef} src={currentTrack.url} />
+      <audio ref={audioRef} src={currentTrack.url} loop />
+
+      {/* 欢迎提示框（首次加载显示） */}
+      <MusicWelcomeToast />
+
+      {/* 边缘辐射动画 */}
+      <MusicEdgeLighting isPlaying={isPlaying} playStartTime={playStartTime} />
 
       <motion.div
         className="fixed left-4 bottom-6 z-10"
@@ -142,7 +161,7 @@ export function MusicPlayer() {
                 {/* 播放进度条 */}
                 <div className="mt-1.5 h-1 bg-secondary/30 rounded-full overflow-hidden">
                   <motion.div
-                    className="h-full bg-accent"
+                    className="h-full bg-gradient-to-r from-teal-400 to-cyan-400"
                     initial={{ width: 0 }}
                     animate={{ width: `${displayProgress}%` }}
                     transition={{ duration: 0.1 }}
@@ -219,13 +238,17 @@ export function MusicPlayer() {
                 )}
               </div>
 
-              {/* 播放时的动画边框 */}
+              {/* 播放时的动画边框 - 蓝绿色 */}
               {isPlaying && (
                 <motion.div
-                  className="absolute inset-0 rounded-full border-2 border-accent"
-                  initial={{ scale: 1, opacity: 1 }}
-                  animate={{ scale: 1.2, opacity: 0 }}
+                  className="absolute inset-0 rounded-full border-2 bg-gradient-to-r from-teal-400 to-cyan-400"
+                  initial={{ scale: 1, opacity: 0.6 }}
+                  animate={{ scale: 1.3, opacity: 0 }}
                   transition={{ duration: 1.5, repeat: Infinity }}
+                  style={{
+                    background: 'transparent',
+                    borderColor: 'rgba(45, 212, 191, 0.6)',
+                  }}
                 />
               )}
             </motion.button>
