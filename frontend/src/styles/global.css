@@ -41,7 +41,8 @@ body {
 }
 
 .bg-primary,
-.bg-secondary {
+.bg-secondary,
+.bg-footer {
   transition: background-color 0.3s ease;
 }
 
