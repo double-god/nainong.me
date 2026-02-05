@@ -4,7 +4,8 @@ services:
     container_name: blog-backend
     restart: always
     volumes:
-      - ./backend/pb_data:/app/pb_data
+      # 改为挂载到宿主机的绝对路径，避开 git 扫描范围
+      - /home/runner/pb_data:/app/pb_data
     deploy:
       resources:
         limits:

@@ -71,15 +71,17 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Fix workspace permissions
+      - name: Force Cleanup Root Files
         run: |
-          # 使用 sudo 强制将工作目录的所有权改回给当前 runner 用户
-          sudo chown -R $USER:$USER ${{ github.workspace }} || true
-          # 或者直接删除冲突的 db 文件（因为你有挂载备份，且部署时会重新生成/拉取）
-          # sudo rm -rf ${{ github.workspace }}/backend/pb_data/data.db || true
+          # 只有 sudo rm 才能删掉 root 创建的数据库文件
+          sudo rm -rf ${{ github.workspace }}/backend/pb_data/data.db || true
+          # 确保整个目录对 runner 用户可见
+          sudo chown -R $USER:$USER ${{ github.workspace }}
 
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          clean: false  # 关键：禁止 checkout 自动清理，由我们手动清理
 
       - name: Generate Production Nginx Config
         run: |
@@ -126,7 +128,8 @@ jobs:
               container_name: blog-backend
               restart: always
               volumes:
-                - ./backend/pb_data:/app/pb_data
+                # 改为挂载到宿主机的绝对路径，避开 git 扫描范围
+                - /home/runner/pb_data:/app/pb_data
               deploy:
                 resources:
                   limits:
