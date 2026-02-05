@@ -33,6 +33,21 @@ html {
   color: theme('textColor.primary');
   background-color: theme('backgroundColor.root');
   scroll-padding-top: 64px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.bg-primary,
+.bg-secondary {
+  transition: background-color 0.3s ease;
+}
+
+.text-primary,
+.text-secondary {
+  transition: color 0.3s ease;
 }
 
 html.gray {

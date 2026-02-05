@@ -54,12 +54,12 @@
       { "light": "#F55555", "dark": "#FCCF31" }
     ],
     "bg": {
-      "primary": { "light": "#ffffff", "dark": "#1c1c1e" },
-      "secondary": { "light": "#f4f4f5", "dark": "#27272a" }
+      "primary": { "light": "#F5F5DC", "dark": "#1A1A2E" },
+      "secondary": { "light": "#E8E8D0", "dark": "#16162E" }
     },
     "text": {
-      "primary": { "light": "#373a3c", "dark": "#ffffff" },
-      "secondary": { "light": "#71717a", "dark": "#d1d5db" }
+      "primary": { "light": "#2C2416", "dark": "#E8E8F0" },
+      "secondary": { "light": "#5C4A32", "dark": "#B8B8C8" }
     },
     "border": {
       "primary": { "light": "#e4e4e7", "dark": "#3f3f46" }
