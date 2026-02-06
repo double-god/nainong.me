@@ -32,9 +32,12 @@ export function MusicPlayer() {
     const audio = audioRef.current
     if (!audio) return
 
+    console.log('🎵 MusicPlayer: 播放状态变化', { isPlaying, currentTrack: currentTrack?.title, playStartTime })
+
     if (isPlaying && currentTrack?.url) {
       audio.play().catch(console.error)
     } else {
+      console.log('⏸️ MusicPlayer: 暂停播放')
       audio.pause()
     }
   }, [isPlaying, currentTrack?.url])
@@ -51,6 +54,7 @@ export function MusicPlayer() {
 
     const handleEnded = () => {
       // 单曲循环：重新播放
+      console.log('🔄 MusicPlayer: 歌曲播放结束，重新开始播放（单曲循环）')
       if (audioRef.current) {
         audioRef.current.currentTime = 0
         audioRef.current.play().catch(console.error)
@@ -67,6 +71,7 @@ export function MusicPlayer() {
   }, [setPlayerState])
 
   const handleTogglePlay = () => {
+    console.log('🎵 MusicPlayer: 用户点击播放/暂停按钮')
     setPlayerState({ type: 'toggle' })
   }
 
@@ -79,6 +84,14 @@ export function MusicPlayer() {
   }
 
   if (!currentTrack) return null
+
+  // 调试：确认 loop 属性
+  useEffect(() => {
+    if (audioRef.current) {
+      console.log('🔍 MusicPlayer: audio 元素 loop 属性 =', audioRef.current.loop)
+      console.log('🔍 MusicPlayer: audio 元素 src =', audioRef.current.src)
+    }
+  }, [currentTrack])
 
   return (
     <>
