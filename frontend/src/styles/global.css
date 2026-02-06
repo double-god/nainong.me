@@ -55,6 +55,55 @@ html.gray {
   filter: grayscale(1);
 }
 
-* {
-  scrollbar-width: thin;
+/* --- 自定义滚动条样式 --- */
+
+/* Webkit 浏览器 (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* 默认状态：完全透明 */
+::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 10px;
+  transition: background-color 0.4s ease;
+}
+
+/* 滚动时：显示滚动条 */
+html.is-scrolling::-webkit-scrollbar-thumb {
+  background-color: rgb(var(--color-bg-primary));
+  border: 2px solid transparent;
+  background-clip: content-box;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1), 0 0 2px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='dark'] html.is-scrolling::-webkit-scrollbar-thumb {
+  box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.1), 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+/* 悬浮时：稍微增加阴影强度 */
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(var(--color-bg-primary)) !important;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb:hover {
+  box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Firefox 浏览器降级处理 */
+@supports (-moz-appearance: none) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  html.is-scrolling * {
+    scrollbar-color: rgb(var(--color-bg-primary)) transparent;
+  }
 }
