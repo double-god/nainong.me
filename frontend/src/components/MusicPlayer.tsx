@@ -1,5 +1,5 @@
 import { useAtom, useAtomValue } from 'jotai'
-import { musicControlsAtom, musicPlayerAtom, type MusicTrack } from '@/store/music'
+import { musicControlsAtom, musicPlayerAtom } from '@/store/music'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import { getMusicList } from '@/utils/content'
@@ -7,24 +7,18 @@ import { MusicWelcomeToast } from './MusicWelcomeToast'
 import { MusicEdgeLighting } from './MusicEdgeLighting'
 
 export function MusicPlayer() {
-  const [playStartTime, setPlayStartTime] = useState<number | undefined>()
   const [, setPlayerState] = useAtom(musicControlsAtom)
   const { isPlaying, isExpanded, currentTrack } = useAtomValue(musicPlayerAtom)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [displayProgress, setDisplayProgress] = useState(0)
 
-  // 调试信息
-  console.log('MusicPlayer render:', { isPlaying, isExpanded, currentTrack, playStartTime })
-
   // 初始化音乐
   useEffect(() => {
     const initMusic = async () => {
       if (!currentTrack) {
-        // 尝试从 PocketBase 获取音乐列表
         const musicList = await getMusicList()
 
         if (musicList.length > 0) {
-          // 使用第一首音乐作为默认曲目
           setPlayerState({ type: 'update', payload: { currentTrack: musicList[0] } })
         }
       }
@@ -33,34 +27,19 @@ export function MusicPlayer() {
     initMusic()
   }, [currentTrack, setPlayerState])
 
-  // 处理音频播放和播放时间追踪
+  // 处理音频播放
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
 
-    console.log('MusicPlayer: 播放状态变化', { isPlaying, currentTrack: currentTrack?.title, playStartTime })
-
     if (isPlaying && currentTrack?.url) {
-      // 使用函数式更新避免闭包陷阱
-      setPlayStartTime(prev => {
-        if (!prev) {
-          const startTime = Date.now()
-          console.log('MusicPlayer: 设置 playStartTime =', startTime)
-          return startTime
-        }
-        return prev
-      })
       audio.play().catch(console.error)
     } else {
-      console.log('MusicPlayer: 暂停播放')
       audio.pause()
-      if (!isPlaying) {
-        setPlayStartTime(undefined)
-      }
     }
   }, [isPlaying, currentTrack?.url])
 
-  // 更新播放进度
+  // 更新播放进度和单曲循环
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
@@ -72,15 +51,9 @@ export function MusicPlayer() {
 
     const handleEnded = () => {
       // 单曲循环：重新播放
-      console.log('🔄 Audio ended 事件触发！开始单曲循环...')
       if (audioRef.current) {
-        console.log('🔄 重置 currentTime = 0')
         audioRef.current.currentTime = 0
-        console.log('🔄 调用 audio.play()')
         audioRef.current.play().catch(console.error)
-        const newStartTime = Date.now()
-        console.log('🔄 重置 playStartTime =', newStartTime)
-        setPlayStartTime(newStartTime)
       }
     }
 
@@ -105,40 +78,17 @@ export function MusicPlayer() {
     setPlayerState({ type: 'update', payload: { isExpanded: false } })
   }
 
-  // 调试：确认 audio 元素已挂载（必须在条件 return 之前）
-  useEffect(() => {
-    if (audioRef.current) {
-      console.log('MusicPlayer: audio 元素已挂载', {
-        src: audioRef.current.src,
-        loop: audioRef.current.loop,
-        readyState: audioRef.current.readyState
-      })
-    } else {
-      console.log('MusicPlayer: audio 元素未挂载')
-    }
-  }, [currentTrack])
-
   if (!currentTrack) return null
 
   return (
     <>
       <audio ref={audioRef} src={currentTrack.url} loop />
 
-      {/* 🔴 调试层：无条件渲染，确认组件是否在运行 */}
-      <div className="fixed top-20 right-4 z-[100] bg-yellow-400 text-black p-4 rounded shadow-2xl text-sm font-mono">
-        <div className="font-bold mb-2">🎵 MUSIC PLAYER DEBUG</div>
-        <div>isPlaying: {String(isPlaying)}</div>
-        <div>isExpanded: {String(isExpanded)}</div>
-        <div>playStartTime: {playStartTime ? new Date(playStartTime).toISOString() : 'undefined'}</div>
-        <div>currentTrack: {currentTrack?.title || 'undefined'}</div>
-        <div>displayProgress: {displayProgress.toFixed(1)}%</div>
-      </div>
-
       {/* 欢迎提示框（首次加载显示） */}
       <MusicWelcomeToast />
 
-      {/* 边缘辐射动画 */}
-      <MusicEdgeLighting isPlaying={isPlaying} playStartTime={playStartTime} />
+      {/* Edge Lighting 效果 */}
+      <MusicEdgeLighting isActive={isPlaying} />
 
       <motion.div
         className="fixed left-4 bottom-6 z-10"
