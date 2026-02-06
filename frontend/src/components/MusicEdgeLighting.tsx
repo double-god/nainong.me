@@ -209,38 +209,45 @@ export function MusicEdgeLighting({ isActive, duration = 5000 }: MusicEdgeLighti
           {/* 第五层 - 律动光点 */}
           {Array.from({ length: 12 }).map((_, i) => {
             const angle = (i / 12) * 360
-            const radius = 45 + Math.random() * 5
-            const x = 50 + radius * Math.cos((angle * Math.PI) / 180)
-            const y = 50 + radius * Math.sin((angle * Math.PI) / 180)
+            const radius = 45
 
             return (
               <motion.div
                 key={`dot-${i}`}
                 className="absolute w-2 h-2 rounded-full"
                 style={{
-                  left: `${x}%`,
-                  top: `${y}%`,
+                  left: '50%',
+                  top: '50%',
+                  marginLeft: '-4px',
+                  marginTop: '-4px',
                   backgroundColor: cyanColors[i % cyanColors.length],
-                  boxShadow: `0 0 10px ${cyanColors[i % cyanColors.length]}, 0 0 20px ${cyanColors[i % cyanColors.length]}`,
+                  boxShadow: `0 0 15px ${cyanColors[i % cyanColors.length]}, 0 0 30px ${cyanColors[i % cyanColors.length]}`,
                 }}
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{
-                  scale: [0.5, 1.5, 0.5],
-                  opacity: [0.3, 1, 0.3],
-                  x: [0, 10, -10, 0],
-                  y: [0, -10, 10, 0],
+                  // 平滑的圆形路径运动
+                  x: [Math.cos((angle * Math.PI) / 180) * radius * 0.8,
+                      Math.cos(((angle + 30) * Math.PI) / 180) * radius * 1.2,
+                      Math.cos(((angle + 60) * Math.PI) / 180) * radius * 0.8],
+                  y: [Math.sin((angle * Math.PI) / 180) * radius * 0.8,
+                      Math.sin(((angle + 30) * Math.PI) / 180) * radius * 1.2,
+                      Math.sin(((angle + 60) * Math.PI) / 180) * radius * 0.8],
+                  // 平滑的大小变化
+                  scale: [0.6, 1.2, 0.6],
+                  // 平滑的透明度变化
+                  opacity: [0.4, 0.9, 0.4],
                 }}
                 exit={{
                   scale: 0,
                   opacity: 0,
-                  transition: { duration: 0.8 }
+                  transition: { duration: 1, ease: 'easeOut' }
                 }}
                 transition={{
-                  duration: 2 + i * 0.1,
+                  duration: 4,
                   repeat: Infinity,
                   repeatType: 'loop',
-                  ease: 'easeInOut',
-                  delay: i * 0.15,
+                  ease: [0.4, 0, 0.2, 1], // cubic-bezier 平滑曲线
+                  delay: i * 0.2,
                 }}
               />
             )
