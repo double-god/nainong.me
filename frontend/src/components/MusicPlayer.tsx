@@ -102,7 +102,7 @@ export function MusicPlayer() {
             // 展开状态 - 胶囊状
             <motion.div
               key="expanded"
-              className="flex items-center gap-3 px-3 py-2 rounded-full shadow-lg shadow-zinc-800/5 border border-primary bg-white/90 dark:bg-zinc-800/90 backdrop-blur"
+              className="flex items-center gap-3 px-3 py-2 rounded-full shadow-2xl shadow-cyan-500/20 border border-primary bg-white/90 dark:bg-zinc-800/90 backdrop-blur"
               initial={{ width: 48, borderRadius: 24 }}
               animate={{ width: 'auto', borderRadius: 24 }}
               exit={{ width: 48, borderRadius: 24 }}
@@ -113,19 +113,33 @@ export function MusicPlayer() {
                 <img
                   src={currentTrack.cover}
                   alt={currentTrack.title}
-                  className="size-full rounded-full object-cover"
+                  className="size-full rounded-full object-cover shadow-lg"
                 />
-                {/* 播放状态指示器 */}
+                {/* 波浪播放指示器 */}
                 {isPlaying && (
                   <motion.div
                     className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-full"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                   >
-                    <div className="flex gap-0.5">
-                      <span className="w-0.5 h-3 bg-white rounded-full animate-pulse" style={{ animationDelay: '0ms' }}></span>
-                      <span className="w-0.5 h-3 bg-white rounded-full animate-pulse" style={{ animationDelay: '150ms' }}></span>
-                      <span className="w-0.5 h-3 bg-white rounded-full animate-pulse" style={{ animationDelay: '300ms' }}></span>
+                    <div className="flex items-end gap-[2px] h-4">
+                      {[0, 1, 2, 3, 4].map((i) => (
+                        <motion.span
+                          key={i}
+                          className="w-[3px] bg-gradient-to-t from-cyan-400 to-teal-400 rounded-full"
+                          style={{ height: '8px' }}
+                          animate={{
+                            height: ['8px', '16px', '8px'],
+                          }}
+                          transition={{
+                            duration: 0.8,
+                            repeat: Infinity,
+                            repeatType: 'loop',
+                            ease: 'easeInOut',
+                            delay: i * 0.1,
+                          }}
+                        />
+                      ))}
                     </div>
                   </motion.div>
                 )}
@@ -190,12 +204,12 @@ export function MusicPlayer() {
             // 收起状态 - 圆形
             <motion.button
               key="collapsed"
-              className="relative size-12 rounded-full shadow-lg shadow-zinc-800/5 border border-primary bg-white/90 dark:bg-zinc-800/90 backdrop-blur overflow-hidden"
+              className="relative size-12 rounded-full shadow-2xl shadow-cyan-500/20 border-2 border-primary bg-white/90 dark:bg-zinc-800/90 backdrop-blur overflow-hidden"
               onClick={handleTogglePlay}
               initial={{ scale: 1 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(6, 182, 212, 0.4)' }}
               whileTap={{ scale: 0.95 }}
               aria-label={isPlaying ? '暂停' : '播放'}
             >
@@ -208,15 +222,26 @@ export function MusicPlayer() {
               {/* 播放状态覆盖层 */}
               <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                 {isPlaying ? (
-                  // 暂停图标
-                  <motion.div
-                    className="flex gap-1"
-                    initial={{ scale: 0.8 }}
-                    animate={{ scale: 1 }}
-                  >
-                    <div className="w-1 h-4 bg-white rounded-sm" />
-                    <div className="w-1 h-4 bg-white rounded-sm" />
-                  </motion.div>
+                  // 波浪图标
+                  <div className="flex items-end gap-[3px] h-6">
+                    {[0, 1, 2, 3, 4].map((i) => (
+                      <motion.span
+                        key={i}
+                        className="w-[4px] bg-gradient-to-t from-cyan-400 to-teal-400 rounded-full shadow-lg"
+                        style={{ height: '10px' }}
+                        animate={{
+                          height: ['10px', '22px', '10px'],
+                        }}
+                        transition={{
+                          duration: 0.8,
+                          repeat: Infinity,
+                          repeatType: 'loop',
+                          ease: 'easeInOut',
+                          delay: i * 0.1,
+                        }}
+                      />
+                    ))}
+                  </div>
                 ) : (
                   // 播放图标
                   <motion.div
@@ -230,16 +255,28 @@ export function MusicPlayer() {
 
               {/* 播放时的动画边框 - 蓝绿色 */}
               {isPlaying && (
-                <motion.div
-                  className="absolute inset-0 rounded-full border-2 bg-gradient-to-r from-teal-400 to-cyan-400"
-                  initial={{ scale: 1, opacity: 0.6 }}
-                  animate={{ scale: 1.3, opacity: 0 }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                  style={{
-                    background: 'transparent',
-                    borderColor: 'rgba(45, 212, 191, 0.6)',
-                  }}
-                />
+                <>
+                  <motion.div
+                    className="absolute inset-0 rounded-full border-2"
+                    style={{
+                      borderColor: 'rgba(34, 211, 238, 0.6)',
+                      boxShadow: '0 0 20px rgba(34, 211, 238, 0.4), inset 0 0 20px rgba(34, 211, 238, 0.2)',
+                    }}
+                    initial={{ scale: 1, opacity: 0.8 }}
+                    animate={{ scale: 1.2, opacity: 0 }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  />
+                  <motion.div
+                    className="absolute inset-0 rounded-full border-2"
+                    style={{
+                      borderColor: 'rgba(45, 212, 191, 0.6)',
+                      boxShadow: '0 0 15px rgba(45, 212, 191, 0.4)',
+                    }}
+                    initial={{ scale: 1, opacity: 0.6 }}
+                    animate={{ scale: 1.15, opacity: 0 }}
+                    transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
+                  />
+                </>
               )}
             </motion.button>
           )}
