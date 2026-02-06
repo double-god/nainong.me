@@ -207,9 +207,16 @@ export function MusicEdgeLighting({ isActive, duration = 5000 }: MusicEdgeLighti
           />
 
           {/* 第五层 - 律动光点 */}
-          {Array.from({ length: 12 }).map((_, i) => {
-            const angle = (i / 12) * 360
-            const radius = 45
+          {Array.from({ length: 16 }).map((_, i) => {
+            // 随机分布在边缘附近
+            const angle = (i / 16) * 360
+            const baseRadius = 42  // 基础半径（距离中心）
+            const radiusVariation = 8 + Math.random() * 6  // 半径变化量
+            const radius = baseRadius + radiusVariation
+
+            // 添加轻微的角度偏移，让分布更自然
+            const angleOffset = (Math.random() - 0.5) * 20  // -10到+10度的偏移
+            const finalAngle = angle + angleOffset
 
             return (
               <motion.div
@@ -225,17 +232,17 @@ export function MusicEdgeLighting({ isActive, duration = 5000 }: MusicEdgeLighti
                 }}
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{
-                  // 平滑的圆形路径运动
-                  x: [Math.cos((angle * Math.PI) / 180) * radius * 0.8,
-                      Math.cos(((angle + 30) * Math.PI) / 180) * radius * 1.2,
-                      Math.cos(((angle + 60) * Math.PI) / 180) * radius * 0.8],
-                  y: [Math.sin((angle * Math.PI) / 180) * radius * 0.8,
-                      Math.sin(((angle + 30) * Math.PI) / 180) * radius * 1.2,
-                      Math.sin(((angle + 60) * Math.PI) / 180) * radius * 0.8],
+                  // 在边缘附近小范围摆动
+                  x: [Math.cos((finalAngle * Math.PI) / 180) * radius,
+                      Math.cos(((finalAngle + 15) * Math.PI) / 180) * (radius + 3),
+                      Math.cos(((finalAngle - 10) * Math.PI) / 180) * (radius - 2)],
+                  y: [Math.sin((finalAngle * Math.PI) / 180) * radius,
+                      Math.sin(((finalAngle + 15) * Math.PI) / 180) * (radius + 3),
+                      Math.sin(((finalAngle - 10) * Math.PI) / 180) * (radius - 2)],
                   // 平滑的大小变化
-                  scale: [0.6, 1.2, 0.6],
+                  scale: [0.5, 1.1, 0.5],
                   // 平滑的透明度变化
-                  opacity: [0.4, 0.9, 0.4],
+                  opacity: [0.3, 0.8, 0.3],
                 }}
                 exit={{
                   scale: 0,
@@ -243,11 +250,11 @@ export function MusicEdgeLighting({ isActive, duration = 5000 }: MusicEdgeLighti
                   transition: { duration: 1, ease: 'easeOut' }
                 }}
                 transition={{
-                  duration: 4,
+                  duration: 3.5 + Math.random() * 1.5, // 随机化动画时长
                   repeat: Infinity,
                   repeatType: 'loop',
-                  ease: [0.4, 0, 0.2, 1], // cubic-bezier 平滑曲线
-                  delay: i * 0.2,
+                  ease: [0.4, 0, 0.2, 1],
+                  delay: i * 0.15,
                 }}
               />
             )
