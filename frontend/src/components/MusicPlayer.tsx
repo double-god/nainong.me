@@ -5,12 +5,15 @@ import { useEffect, useRef, useState } from 'react'
 import { getMusicList } from '@/utils/content'
 import { MusicWelcomeToast } from './MusicWelcomeToast'
 import { MusicEdgeLighting } from './MusicEdgeLighting'
+import { extractDominantColor, lightenColor } from '@/utils/color'
 
 export function MusicPlayer() {
   const [, setPlayerState] = useAtom(musicControlsAtom)
   const { isPlaying, isExpanded, currentTrack } = useAtomValue(musicPlayerAtom)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [displayProgress, setDisplayProgress] = useState(0)
+  const [dominantColor, setDominantColor] = useState<string | null>(null)
+  const [lightColor, setLightColor] = useState<string>('rgba(34, 211, 238, 0.2)')
 
   // 初始化音乐
   useEffect(() => {
@@ -26,6 +29,28 @@ export function MusicPlayer() {
 
     initMusic()
   }, [currentTrack, setPlayerState])
+
+  // 提取封面主色调并生成变浅颜色
+  useEffect(() => {
+    if (!currentTrack?.cover) return
+
+    const extractColor = async () => {
+      try {
+        const color = await extractDominantColor(currentTrack.cover)
+        setDominantColor(color)
+
+        // 生成变浅的颜色用于阴影和背景
+        const light = lightenColor(color, 0.3)
+        setLightColor(light.replace('rgb', 'rgba').replace(')', ', 0.2)'))
+      } catch (error) {
+        console.error('提取颜色失败:', error)
+        // 使用默认的青色
+        setLightColor('rgba(34, 211, 238, 0.2)')
+      }
+    }
+
+    extractColor()
+  }, [currentTrack?.cover])
 
   // 处理音频播放
   useEffect(() => {
@@ -102,7 +127,12 @@ export function MusicPlayer() {
             // 展开状态 - 胶囊状
             <motion.div
               key="expanded"
-              className="flex items-center gap-3 px-3 py-2 rounded-full shadow-2xl shadow-cyan-500/20 border border-primary bg-white/90 dark:bg-zinc-800/90 backdrop-blur"
+              className="flex items-center gap-3 px-3 py-2 rounded-full border border-primary bg-white/90 dark:bg-zinc-800/90 backdrop-blur"
+              style={{
+                boxShadow: dominantColor
+                  ? `0 10px 40px ${lightColor}, 0 0 20px ${lightColor}`
+                  : '0 10px 40px rgba(34, 211, 238, 0.2), 0 0 20px rgba(34, 211, 238, 0.1)',
+              }}
               initial={{ width: 48, borderRadius: 24 }}
               animate={{ width: 'auto', borderRadius: 24 }}
               exit={{ width: 48, borderRadius: 24 }}
@@ -204,12 +234,22 @@ export function MusicPlayer() {
             // 收起状态 - 圆形
             <motion.button
               key="collapsed"
-              className="relative size-12 rounded-full shadow-2xl shadow-cyan-500/20 border-2 border-primary bg-white/90 dark:bg-zinc-800/90 backdrop-blur overflow-hidden"
+              className="relative size-12 rounded-full border-2 border-primary bg-white/90 dark:bg-zinc-800/90 backdrop-blur overflow-hidden"
+              style={{
+                boxShadow: dominantColor
+                  ? `0 10px 30px ${lightColor}`
+                  : '0 10px 30px rgba(34, 211, 238, 0.2)',
+              }}
               onClick={handleTogglePlay}
               initial={{ scale: 1 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
-              whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(6, 182, 212, 0.4)' }}
+              whileHover={{
+                scale: 1.05,
+                boxShadow: dominantColor
+                  ? `0 0 30px ${lightColor}, 0 0 50px ${lightColor}`
+                  : '0 0 30px rgba(6, 182, 212, 0.4)',
+              }}
               whileTap={{ scale: 0.95 }}
               aria-label={isPlaying ? '暂停' : '播放'}
             >
@@ -253,14 +293,18 @@ export function MusicPlayer() {
                 )}
               </div>
 
-              {/* 播放时的动画边框 - 蓝绿色 */}
+              {/* 播放时的动画边框 - 自适应封面主色调 */}
               {isPlaying && (
                 <>
                   <motion.div
                     className="absolute inset-0 rounded-full border-2"
                     style={{
-                      borderColor: 'rgba(34, 211, 238, 0.6)',
-                      boxShadow: '0 0 20px rgba(34, 211, 238, 0.4), inset 0 0 20px rgba(34, 211, 238, 0.2)',
+                      borderColor: dominantColor
+                        ? dominantColor.replace('rgb', 'rgba').replace(')', ', 0.6)')
+                        : 'rgba(34, 211, 238, 0.6)',
+                      boxShadow: dominantColor
+                        ? `0 0 20px ${dominantColor.replace('rgb', 'rgba').replace(')', ', 0.4)')}, inset 0 0 20px ${dominantColor.replace('rgb', 'rgba').replace(')', ', 0.2)')}`
+                        : '0 0 20px rgba(34, 211, 238, 0.4), inset 0 0 20px rgba(34, 211, 238, 0.2)',
                     }}
                     initial={{ scale: 1, opacity: 0.8 }}
                     animate={{ scale: 1.2, opacity: 0 }}
@@ -269,8 +313,12 @@ export function MusicPlayer() {
                   <motion.div
                     className="absolute inset-0 rounded-full border-2"
                     style={{
-                      borderColor: 'rgba(45, 212, 191, 0.6)',
-                      boxShadow: '0 0 15px rgba(45, 212, 191, 0.4)',
+                      borderColor: dominantColor
+                        ? dominantColor.replace('rgb', 'rgba').replace(')', ', 0.5)')
+                        : 'rgba(45, 212, 191, 0.6)',
+                      boxShadow: dominantColor
+                        ? `0 0 15px ${dominantColor.replace('rgb', 'rgba').replace(')', ', 0.3)')}`
+                        : '0 0 15px rgba(45, 212, 191, 0.4)',
                     }}
                     initial={{ scale: 1, opacity: 0.6 }}
                     animate={{ scale: 1.15, opacity: 0 }}
