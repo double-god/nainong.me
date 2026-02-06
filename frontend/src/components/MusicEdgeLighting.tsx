@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 interface MusicEdgeLightingProps {
   isPlaying: boolean
@@ -7,8 +7,33 @@ interface MusicEdgeLightingProps {
 }
 
 export function MusicEdgeLighting({ isPlaying, playStartTime }: MusicEdgeLightingProps) {
+  // 使用本地状态跟踪实际的时间差，避免 useMemo 中的 Date.now() 时序问题
+  const [actualElapsed, setActualElapsed] = useState(0)
+
+  // 当播放状态改变时，启动/停止计时器
+  useEffect(() => {
+    if (!isPlaying || !playStartTime) {
+      setActualElapsed(0)
+      return
+    }
+
+    // 立即计算一次
+    const updateElapsed = () => {
+      const elapsed = Date.now() - playStartTime
+      setActualElapsed(elapsed)
+      console.log(`⏱️ 更新 elapsed: ${elapsed}ms`)
+    }
+
+    updateElapsed()
+
+    // 持续更新
+    const interval = setInterval(updateElapsed, 100)
+
+    return () => clearInterval(interval)
+  }, [isPlaying, playStartTime])
+
   // 调试信息
-  console.log('MusicEdgeLighting render:', { isPlaying, playStartTime })
+  console.log('MusicEdgeLighting render:', { isPlaying, playStartTime, actualElapsed })
 
   // 生成辐射线条数据
   const radiatingLines = useMemo(() => {
@@ -29,7 +54,7 @@ export function MusicEdgeLighting({ isPlaying, playStartTime }: MusicEdgeLightin
     }))
   }, [])
 
-  // 计算透明度
+  // 计算透明度（使用 actualElapsed 状态，避免时序问题）
   const opacity = useMemo(() => {
     if (!isPlaying) {
       console.log('🔴 Edge Lighting: isPlaying = false')
@@ -42,30 +67,25 @@ export function MusicEdgeLighting({ isPlaying, playStartTime }: MusicEdgeLightin
       return 1
     }
 
-    const elapsed = Date.now() - playStartTime
-    console.log('⏱️ Edge Lighting 时间计算:', {
-      now: Date.now(),
-      start: playStartTime,
-      elapsed: elapsed,
-      elapsedSeconds: (elapsed / 1000).toFixed(2)
-    })
+    const elapsed = actualElapsed
+    console.log(`⏱️ 计算透明度: elapsed=${elapsed}ms`)
 
     let calculatedOpacity: number
     if (elapsed < 800) {
       // 前0.8秒淡入
       calculatedOpacity = elapsed / 800
-      console.log('🟢 淡入阶段:', calculatedOpacity.toFixed(2))
+      console.log(`🟢 淡入阶段: opacity=${calculatedOpacity.toFixed(2)}`)
     } else if (elapsed > 6000) {
       // 6秒后淡出
       calculatedOpacity = Math.max(0, 1 - (elapsed - 6000) / 1500)
-      console.log('🔴 淡出阶段:', calculatedOpacity.toFixed(2))
+      console.log(`🔴 淡出阶段: opacity=${calculatedOpacity.toFixed(2)}`)
     } else {
       calculatedOpacity = 1
-      console.log('✅ 正常显示:', calculatedOpacity.toFixed(2))
+      console.log(`✅ 正常显示: opacity=${calculatedOpacity.toFixed(2)}`)
     }
 
     return calculatedOpacity
-  }, [isPlaying, playStartTime])
+  }, [isPlaying, actualElapsed])
 
   // 调试信息
   console.log('MusicEdgeLighting opacity:', opacity.toFixed(2), 'should render:', isPlaying && opacity > 0)
