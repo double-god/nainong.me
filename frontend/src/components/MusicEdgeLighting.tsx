@@ -207,58 +207,47 @@ export function MusicEdgeLighting({ isActive, duration = 5000 }: MusicEdgeLighti
           />
 
           {/* 第五层 - 律动光点 */}
-          {Array.from({ length: 16 }).map((_, i) => {
-            // 随机分布在边缘附近
-            const angle = (i / 16) * 360
-            const baseRadius = 42  // 基础半径（距离中心）
-            const radiusVariation = 8 + Math.random() * 6  // 半径变化量
-            const radius = baseRadius + radiusVariation
-
-            // 添加轻微的角度偏移，让分布更自然
-            const angleOffset = (Math.random() - 0.5) * 20  // -10到+10度的偏移
-            const finalAngle = angle + angleOffset
-
-            return (
-              <motion.div
-                key={`dot-${i}`}
-                className="absolute w-2 h-2 rounded-full"
-                style={{
-                  left: '50%',
-                  top: '50%',
-                  marginLeft: '-4px',
-                  marginTop: '-4px',
-                  backgroundColor: cyanColors[i % cyanColors.length],
-                  boxShadow: `0 0 15px ${cyanColors[i % cyanColors.length]}, 0 0 30px ${cyanColors[i % cyanColors.length]}`,
-                }}
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{
-                  // 在边缘附近小范围摆动
-                  x: [Math.cos((finalAngle * Math.PI) / 180) * radius,
-                      Math.cos(((finalAngle + 15) * Math.PI) / 180) * (radius + 3),
-                      Math.cos(((finalAngle - 10) * Math.PI) / 180) * (radius - 2)],
-                  y: [Math.sin((finalAngle * Math.PI) / 180) * radius,
-                      Math.sin(((finalAngle + 15) * Math.PI) / 180) * (radius + 3),
-                      Math.sin(((finalAngle - 10) * Math.PI) / 180) * (radius - 2)],
-                  // 平滑的大小变化
-                  scale: [0.5, 1.1, 0.5],
-                  // 平滑的透明度变化
-                  opacity: [0.3, 0.8, 0.3],
-                }}
-                exit={{
-                  scale: 0,
-                  opacity: 0,
-                  transition: { duration: 1, ease: 'easeOut' }
-                }}
-                transition={{
-                  duration: 3.5 + Math.random() * 1.5, // 随机化动画时长
-                  repeat: Infinity,
-                  repeatType: 'loop',
-                  ease: [0.4, 0, 0.2, 1],
-                  delay: i * 0.15,
-                }}
-              />
-            )
-          })}
+          {[
+            // 顶部边缘
+            { x: 15, y: 5 }, { x: 35, y: 3 }, { x: 55, y: 4 }, { x: 75, y: 5 }, { x: 90, y: 6 },
+            // 右侧边缘
+            { x: 95, y: 20 }, { x: 96, y: 40 }, { x: 95, y: 60 }, { x: 96, y: 80 },
+            // 底部边缘
+            { x: 85, y: 94 }, { x: 65, y: 95 }, { x: 45, y: 96 }, { x: 25, y: 94 },
+            // 左侧边缘
+            { x: 8, y: 80 }, { x: 6, y: 60 }, { x: 8, y: 40 }, { x: 6, y: 20 },
+          ].map((pos, i) => (
+            <motion.div
+              key={`dot-${i}`}
+              className="absolute w-2 h-2 rounded-full"
+              style={{
+                left: `${pos.x}%`,
+                top: `${pos.y}%`,
+                marginLeft: '-4px',
+                marginTop: '-4px',
+                backgroundColor: cyanColors[i % cyanColors.length],
+                boxShadow: `0 0 15px ${cyanColors[i % cyanColors.length]}, 0 0 30px ${cyanColors[i % cyanColors.length]}`,
+              }}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{
+                // 只在原位轻微律动
+                scale: [0.5, 1.1, 0.5],
+                opacity: [0.3, 0.9, 0.3],
+              }}
+              exit={{
+                scale: 0,
+                opacity: 0,
+                transition: { duration: 1, ease: 'easeOut' }
+              }}
+              transition={{
+                duration: 2 + Math.random() * 2,
+                repeat: Infinity,
+                repeatType: 'loop',
+                ease: 'easeInOut',
+                delay: i * 0.1,
+              }}
+            />
+          ))}
         </motion.div>
       )}
     </AnimatePresence>
