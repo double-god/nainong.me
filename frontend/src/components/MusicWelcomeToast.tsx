@@ -82,7 +82,7 @@ export function MusicWelcomeToast() {
                   🎵
                 </motion.div>
                 <p className="text-base font-medium text-white leading-relaxed drop-shadow-lg">
-                  这是我花两元的买的歌，请你听歌呀੭ ˙ᗜ˙ ੭
+                  这是我花两元买的歌，请你听歌呀੭ ˙ᗜ˙ ੭
                 </p>
               </div>
             </motion.div>
