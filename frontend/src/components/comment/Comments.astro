@@ -1,8 +1,87 @@
 ---
-import { Waline } from './Waline'
-import { waline } from '@/config.json'
+/**
+ * Comments Container Component
+ * Astro component that wraps the React CommentSystem
+ */
+
+import { CommentSystem } from './CommentSystem'
+
+interface Props {
+  postSlug: string
+}
+
+const { postSlug } = Astro.props
 ---
 
 <div>
-  {waline.serverURL && <Waline {...waline} client:visible />}
+  <CommentSystem postSlug={postSlug} client:visible />
 </div>
+
+<style>
+  /* Custom styles for comment content */
+  :global(.comment-content) {
+    /* Reset some prose styles for comments */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  :global(.comment-content p) {
+    margin-bottom: 0.75em;
+  }
+
+  :global(.comment-content p:last-child) {
+    margin-bottom: 0;
+  }
+
+  :global(.comment-content a) {
+    color: rgb(var(--color-accent));
+    text-decoration: underline;
+  }
+
+  :global(.comment-content a:hover) {
+    opacity: 0.8;
+  }
+
+  :global(.comment-content code) {
+    background-color: rgb(var(--color-secondary));
+    padding: 0.2em 0.4em;
+    border-radius: 0.25em;
+    font-size: 0.875em;
+  }
+
+  :global(.comment-content pre) {
+    background-color: rgb(var(--color-secondary));
+    padding: 1em;
+    border-radius: 0.5em;
+    overflow-x: auto;
+  }
+
+  :global(.comment-content pre code) {
+    background-color: transparent;
+    padding: 0;
+  }
+
+  :global(.comment-content blockquote) {
+    border-left: 4px solid rgb(var(--color-accent));
+    padding-left: 1em;
+    margin-left: 0;
+    color: rgb(var(--color-secondary));
+  }
+
+  :global(.comment-content ul),
+  :global(.comment-content ol) {
+    padding-left: 1.5em;
+    margin-bottom: 0.75em;
+  }
+
+  :global(.comment-content li) {
+    margin-bottom: 0.25em;
+  }
+
+  :global(.comment-content img) {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5em;
+    margin: 0.5em 0;
+  }
+</style>
