@@ -21,12 +21,12 @@ export async function getSortedPosts(): Promise<Post[]> {
 // 获取所有标签 (需要你手动从文章里提取，或者 PB 单独建表)
 // 这里先返回空，防止报错
 export async function getAllTags() {
-  return []
+  return [] as Array<{ name: string; slug: string; count: number }>
 }
 
 // 获取所有分类
 export async function getAllCategories() {
-  return []
+  return [] as Array<{ name: string; slug: string; count: number }>
 }
 
 // 获取热门标签

@@ -29,7 +29,7 @@ interface Props {
 const { category } = Astro.props
 
 const oldestPosts = await getOldestPosts().then((posts) => {
-  return posts.filter((post) => post.data.category && slugify(post.data.category) === category.slug)
+  return posts.filter((post) => post.category && slugify(post.category) === category.slug)
 })
 ---
 
