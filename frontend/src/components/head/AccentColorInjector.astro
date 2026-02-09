@@ -1,3 +1,27 @@
+<!-- 内联关键 CSS 避免页面加载时的闪烁 -->
+<style is:inline>
+  html {
+    --color-accent: 245 85 85;
+    --color-bg-root: 255 253 245;
+    --color-bg-primary: 255 253 245;
+    --color-bg-secondary: 232 232 208;
+    --color-bg-footer: 255 240 245;
+    --color-text-primary: 44 36 22;
+    --color-text-secondary: 92 74 50;
+    --color-border-primary: 228 228 231;
+  }
+  [data-theme='dark'] {
+    --color-accent: 252 207 49;
+    --color-bg-root: 26 26 46;
+    --color-bg-primary: 26 26 46;
+    --color-bg-secondary: 22 22 46;
+    --color-bg-footer: 18 18 38;
+    --color-text-primary: 232 232 240;
+    --color-text-secondary: 184 184 200;
+    --color-border-primary: 63 63 70;
+  }
+</style>
+
 <script>
   import chroma from 'chroma-js'
   import { color as themeColor } from '@/config.json'
@@ -11,15 +35,26 @@
     return color.rgb().join(' ')
   }
 
+  // 存储当前选择的颜色，确保页面切换时保持一致
+  let currentAccentColor: { light: string; dark: string } | null = null
+
   function injectColor() {
-    const accentColor = pickRandomAccent()
+    const accentColor = currentAccentColor || pickRandomAccent()
+    currentAccentColor = accentColor
 
     const rootBgColor = {
       light: chroma(themeColor.bg.primary.light),
       dark: chroma(themeColor.bg.primary.dark),
     }
 
-    const $style = document.createElement('style')
+    // 更新或创建 style 标签
+    let $style = document.getElementById('theme-colors')
+    if (!$style) {
+      $style = document.createElement('style')
+      $style.id = 'theme-colors'
+      document.head.appendChild($style)
+    }
+
     $style.textContent = `html {
   --color-accent: ${getRgbVal(chroma(accentColor.light))};
   --color-bg-root: ${getRgbVal(rootBgColor.light)};
@@ -40,10 +75,10 @@
   --color-text-secondary: ${getRgbVal(chroma(themeColor.text.secondary.dark))};
   --color-border-primary: ${getRgbVal(chroma(themeColor.border.primary.dark))};
 }`
-    document.head.appendChild($style)
   }
 
   injectColor()
 
+  // 页面切换时保持颜色一致
   document.addEventListener('swup:content:replace', injectColor)
 </script>
