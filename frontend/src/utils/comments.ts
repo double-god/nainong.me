@@ -190,21 +190,37 @@ export async function createComment(
 }
 
 /**
- * Get avatar URL from UI Avatars (simple and reliable)
+ * Get avatar URL from local SVG (most reliable)
  */
 export function getUIAvatarUrl(nickname: string, size: number = 80): string {
-  const name = nickname.trim().substring(0, 2)
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff&size=${size}`
+  // Use first character for avatar
+  const initial = nickname.trim().charAt(0).toUpperCase() || '?'
+  // Generate colors based on nickname for consistency
+  const colors = ['6366f1', '8b5cf6', 'ec4899', 'f43f5e', 'f97316', 'eab308', '22c55e', '14b8a6', '0ea5e9', '3b82f6']
+  const colorIndex = nickname.charCodeAt(0) % colors.length
+  const backgroundColor = colors[colorIndex]
+
+  // Create SVG data URL
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
+      <rect width="${size}" height="${size}" fill="#${backgroundColor}"/>
+      <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-size="${size * 0.45}" fill="white" font-family="system-ui, -apple-system, sans-serif" font-weight="600">
+        ${initial}
+      </text>
+    </svg>
+  `.trim()
+
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`
 }
 
 /**
- * Get avatar URL from Gravatar
+ * Get avatar URL from Gravatar (using China-friendly mirror)
  */
 export function getGravatarUrl(email: string, size: number = 80): string {
   const cleanEmail = email.trim().toLowerCase()
-  // Calculate MD5 hash of email
   const hash = md5(cleanEmail)
-  return `https://www.gravatar.com/avatar/${hash}?s=${size}&d=retro`
+  // Use gravatar.loli.net mirror for China accessibility
+  return `https://gravatar.loli.net/avatar/${hash}?s=${size}&d=retro`
 }
 
 /**

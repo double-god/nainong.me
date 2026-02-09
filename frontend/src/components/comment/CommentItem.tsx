@@ -10,7 +10,7 @@ import { zhCN } from 'date-fns/locale'
 import { MessageSquare } from 'lucide-react'
 import { marked } from 'marked'
 import type { CommentWithReplies } from '@/types'
-import { getAvatarUrl } from '@/utils/comments'
+import { getAvatarUrl, getUIAvatarUrl } from '@/utils/comments'
 
 interface CommentItemProps {
   comment: CommentWithReplies
@@ -22,6 +22,7 @@ const MAX_DEPTH = 3
 
 export function CommentItem({ comment, depth = 0, onReply }: CommentItemProps) {
   const [renderedContent, setRenderedContent] = useState('')
+  const [avatarError, setAvatarError] = useState(false)
 
   useEffect(() => {
     // Render markdown to HTML
@@ -42,7 +43,7 @@ export function CommentItem({ comment, depth = 0, onReply }: CommentItemProps) {
     locale: zhCN,
   })
 
-  const avatarUrl = getAvatarUrl(comment.email, comment.nickname)
+  const avatarUrl = avatarError ? getUIAvatarUrl(comment.nickname, 80) : getAvatarUrl(comment.email, comment.nickname)
   const hasReplies = comment.replies && comment.replies.length > 0
   const canReply = depth < MAX_DEPTH
 
@@ -62,6 +63,7 @@ export function CommentItem({ comment, depth = 0, onReply }: CommentItemProps) {
             alt={comment.nickname}
             className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-secondary"
             loading="lazy"
+            onError={() => setAvatarError(true)}
           />
         </div>
 
