@@ -4,6 +4,41 @@
 @import './signature.css';
 @import './swup.css';
 
+/* --- 图片优化样式 --- */
+/* 图片淡入动画 */
+@keyframes imageFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* 图片加载时的占位符效果 */
+img[loading] {
+  animation: imageFadeIn 0.4s ease-out forwards;
+}
+
+/* 为封面图添加加载状态 */
+.post-card-cover {
+  background: linear-gradient(
+    90deg,
+    rgb(var(--color-bg-secondary)) 25%,
+    rgb(var(--color-bg-primary)) 50%,
+    rgb(var(--color-bg-secondary)) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite, imageFadeIn 0.4s ease-out forwards;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* 图片加载完成后移除闪烁效果 */
+.post-card-cover[src] {
+  animation: imageFadeIn 0.4s ease-out forwards;
+}
+
+
 @font-face {
   font-family: 'Atkinson';
   src: url('/fonts/atkinson-regular.woff') format('woff');
@@ -33,11 +68,11 @@ html {
   color: theme('textColor.primary');
   background-color: theme('backgroundColor.root');
   scroll-padding-top: 64px;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 body {
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .bg-primary,
