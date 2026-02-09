@@ -29,7 +29,7 @@ interface Props {
 const { tag } = Astro.props
 
 const oldestPosts = await getOldestPosts().then((posts) => {
-  return posts.filter((post) => post.data.tags.findIndex((t) => slugify(t) === tag.slug) >= 0)
+  return posts.filter((post) => post.tags?.findIndex((t: string) => slugify(t) === tag.slug) ?? -1 >= 0)
 })
 ---
 

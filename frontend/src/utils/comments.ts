@@ -227,7 +227,7 @@ function md5(string: string): string {
   function g(x: number, y: number, z: number) {
     return (x & z) | (y & ~z)
   }
-  function h(x: number, y: number, z) {
+  function h(x: number, y: number, z: number) {
     return x ^ y ^ z
   }
   function i(x: number, y: number, z: number) {

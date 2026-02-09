@@ -12,9 +12,9 @@ export async function GET(context: APIContext) {
     site: context.site!,
     items: sortedPosts.map((post) => ({
       link: `/posts/${post.slug}`,
-      title: post.data.title,
-      pubDate: post.data.date,
-      description: post.data.summary,
+      title: post.title,
+      pubDate: new Date(post.created),
+      description: post.summary,
     })),
     customData: `<language>${site.lang}</language>`,
   })
