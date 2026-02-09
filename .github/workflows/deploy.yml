@@ -139,7 +139,7 @@ jobs:
           "
           echo "✅ 数据导入完成"
 
-      # --- 第五步：部署 (这一步会保留你的 pb_data 文件夹，只更新容器) ---
+      # --- 第五步：部署 (保留现有数据目录) ---
       - name: Pull and Re-deploy
         run: |
           docker compose pull

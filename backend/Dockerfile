@@ -8,7 +8,7 @@ FROM alpine:latest AS downloader
 RUN apk add --no-cache --virtual=build curl unzip
 
 # 定义版本 (以后要升级改这里就行)
-ARG PB_VERSION=0.22.9
+ARG PB_VERSION=0.26.6
 
 # 下载并解压 (自动适配 Linux AMD64)
 # 使用 -L 跟随重定向, -sS 静默模式但显示错误
