@@ -130,13 +130,14 @@ jobs:
 
       - name: Import PocketBase Data
         run: |
-          echo "📦 导入 PocketBase 数据..."
-          # 确保目录存在
-          mkdir -p /home/runner/pb_data
-          # 解压：tar 包内是 pb_data/...，去掉一层 pb_data/ 前缀
-          tar -xzf backend/pb_data_backup.tar.gz --strip-components=1 -C /home/runner/pb_data/
+          echo "📦 导入 PocketBase 数据（使用 Docker 容器避免权限问题）..."
+          # 使用 Docker 容器解压，避免权限问题
+          docker run --rm -v "$(pwd):/src" -v "/home/runner/pb_data:/data" alpine:latest sh -c "
+            cd /src
+            tar -xzf backend/pb_data_backup.tar.gz --strip-components=1 -C /data/
+            ls -la /data/
+          "
           echo "✅ 数据导入完成"
-          ls -la /home/runner/pb_data/
 
       # --- 第五步：部署 (这一步会保留你的 pb_data 文件夹，只更新容器) ---
       - name: Pull and Re-deploy
