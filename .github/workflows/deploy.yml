@@ -123,11 +123,15 @@ jobs:
           docker stop blog-backend || true
           docker rm blog-backend || true
 
+      - name: Clean Old PocketBase Data
+        run: |
+          echo "🧹 清理旧数据（使用 Docker 容器避免权限问题）..."
+          docker run --rm -v "/home/runner/pb_data:/data" alpine:latest sh -c "rm -rf /data/* || true"
+
       - name: Import PocketBase Data
         run: |
           echo "📦 导入 PocketBase 数据..."
-          # 清空并重新创建目录
-          rm -rf /home/runner/pb_data
+          # 确保目录存在
           mkdir -p /home/runner/pb_data
           # 解压：tar 包内是 pb_data/...，去掉一层 pb_data/ 前缀
           tar -xzf backend/pb_data_backup.tar.gz --strip-components=1 -C /home/runner/pb_data/
