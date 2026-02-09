@@ -23,6 +23,20 @@ export function MusicPlayer() {
 
         if (musicList.length > 0) {
           setPlayerState({ type: 'update', payload: { currentTrack: musicList[0] } })
+        } else {
+          // 如果没有获取到音乐数据，使用默认占位曲目
+          setPlayerState({
+            type: 'update',
+            payload: {
+              currentTrack: {
+                id: 'default',
+                title: '暂无音乐',
+                artist: '请先配置音乐数据',
+                cover: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="%236366f1"/%3E%3Ctext x="50" y="50" dominant-baseline="central" text-anchor="middle" font-size="40" fill="white" font-family="sans-serif"%3E🎵%3C/text%3E%3C/svg%3E',
+                url: '',
+              }
+            }
+          })
         }
       }
     }

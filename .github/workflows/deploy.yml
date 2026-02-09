@@ -116,7 +116,20 @@ jobs:
           }
           EOF
 
-      # --- 第四步：部署 (这一步会保留你的 pb_data 文件夹，只更新容器) ---
+      # --- 第四步：导入 PocketBase 数据（如果数据目录为空）---
+      - name: Import PocketBase Data
+        run: |
+          # 检查数据目录是否为空
+          if [ -z "$(ls -A /home/runner/pb_data)" ]; then
+            echo "📦 导入 PocketBase 数据..."
+            mkdir -p /home/runner/pb_data
+            tar -xzf backend/pb_data_backup.tar.gz -C /home/runner/
+            echo "✅ 数据导入完成"
+          else
+            echo "✅ 数据已存在，跳过导入"
+          fi
+
+      # --- 第五步：部署 (这一步会保留你的 pb_data 文件夹，只更新容器) ---
       - name: Pull and Re-deploy
         run: |
           docker compose pull
