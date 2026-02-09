@@ -116,18 +116,17 @@ jobs:
           }
           EOF
 
-      # --- 第四步：导入 PocketBase 数据（如果数据目录为空）---
+      # --- 第四步：导入 PocketBase 数据（总是导入最新数据）---
       - name: Import PocketBase Data
         run: |
-          # 检查数据目录是否为空
-          if [ -z "$(ls -A /home/runner/pb_data)" ]; then
-            echo "📦 导入 PocketBase 数据..."
-            mkdir -p /home/runner/pb_data
-            tar -xzf backend/pb_data_backup.tar.gz -C /home/runner/
-            echo "✅ 数据导入完成"
-          else
-            echo "✅ 数据已存在，跳过导入"
-          fi
+          echo "📦 导入 PocketBase 数据..."
+          # 清空并重新创建目录
+          rm -rf /home/runner/pb_data
+          mkdir -p /home/runner/pb_data
+          # 解压时去掉 backend 目录前缀
+          tar -xzf backend/pb_data_backup.tar.gz --strip-components=2 -C /home/runner/pb_data/ backend/pb_data/
+          echo "✅ 数据导入完成"
+          ls -la /home/runner/pb_data/
 
       # --- 第五步：部署 (这一步会保留你的 pb_data 文件夹，只更新容器) ---
       - name: Pull and Re-deploy
