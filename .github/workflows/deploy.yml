@@ -133,7 +133,6 @@ jobs:
         run: |
           docker compose pull
           docker compose up -d --force-recreate --no-build
-          docker exec blog-gateway nginx -s reload
 
       - name: Health Check
         run: |
