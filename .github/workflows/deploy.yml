@@ -117,6 +117,12 @@ jobs:
           EOF
 
       # --- 第四步：导入 PocketBase 数据（总是导入最新数据）---
+      - name: Stop Backend Container
+        run: |
+          echo "🛑 停止 backend 容器..."
+          docker stop blog-backend || true
+          docker rm blog-backend || true
+
       - name: Import PocketBase Data
         run: |
           echo "📦 导入 PocketBase 数据..."
