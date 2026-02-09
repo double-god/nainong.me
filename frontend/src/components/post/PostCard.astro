@@ -25,10 +25,13 @@ const coverUrl = entry.cover
     {
       coverUrl && (
         <img
-          class="float-right ml-3 mb-2 size-[80px] rounded-md object-cover select-none"
+          class="post-card-cover float-right ml-3 mb-2 size-[80px] rounded-md object-cover select-none"
           src={coverUrl}
           alt={entry.title}
           loading="lazy"
+          decoding="async"
+          width="80"
+          height="80"
         />
       )
     }
