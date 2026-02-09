@@ -6,6 +6,8 @@ services:
     volumes:
       # 改为挂载到宿主机的绝对路径，避开 git 扫描范围
       - /home/runner/pb_data:/app/pb_data
+    networks:
+      - blog-network
     deploy:
       resources:
         limits:
@@ -23,6 +25,8 @@ services:
       - PUBLIC_API_URL=${PUBLIC_API_URL:-https://api.nainong.me}
     expose:
       - "80"
+    networks:
+      - blog-network
     deploy:
       resources:
         limits:
@@ -44,8 +48,14 @@ services:
     depends_on:
       - backend
       - frontend
+    networks:
+      - blog-network
     deploy:
       resources:
         limits:
           cpus: '0.25'
           memory: 128M
+
+networks:
+  blog-network:
+    driver: bridge

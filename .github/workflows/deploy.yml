@@ -99,17 +99,17 @@ jobs:
                   listen 80;
                   # 静态资源强匹配，解决 CSS 丢失
                   location ^~ /_astro/ {
-                      proxy_pass http://frontend:80;
+                      proxy_pass http://blog-frontend:80;
                       proxy_set_header Host $host;
                       expires -1;
                       add_header Cache-Control "no-store, no-cache, must-revalidate";
                   }
                   location ~ ^/(api|_admin|_schema) {
-                      proxy_pass http://backend:8090;
+                      proxy_pass http://blog-backend:8090;
                       proxy_set_header Host $host;
                   }
                   location / {
-                      proxy_pass http://frontend:80;
+                      proxy_pass http://blog-frontend:80;
                       proxy_set_header Host $host;
                   }
               }
